@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>批量操作 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>批量操作</span>
+  </div>
+
+  <h1>批量操作</h1>
+  <p>
+    <code>BatchActionTable</code> 内部强制启用行选择功能，当有行被选中时，底部自动滑出批量操作栏，
+    展示已配置的操作按钮（如批量删除、批量导出）和取消按钮。通过 <code>BatchAction</code> 定义操作项。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>定义批量操作列表，点击行选中后底部出现操作栏：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val score: Int)
+
+BatchActionTable&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("成绩", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+        )
+        data = students
+        batchActions = listOf(
+            BatchAction("批量删除", icon = "🗑") { indices -&gt;
+                println("删除 ${indices.size} 项: $indices")
+                viewModel.deleteStudents(indices)
+            },
+            BatchAction("批量导出", icon = "📤") { indices -&gt;
+                println("导出 ${indices.size} 项")
+                viewModel.exportStudents(indices)
+            }
+        )
+        theme = TableTheme.BORDERED
+    }
+    event {
+        batchAction { action, indices -&gt;
+            println("执行: ${action.label}，选中行: $indices")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义操作栏样式</h2>
+  <p>通过样式属性自定义批量操作栏的外观：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">BatchActionTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = students
+        batchActions = listOf(
+            BatchAction("批量删除") { indices -&gt; viewModel.delete(indices) },
+            BatchAction("标记已读") { indices -&gt; viewModel.markRead(indices) },
+        )
+        actionBarHeight = 56f
+        actionBarBackgroundColor = Color(0xFFE8F5E9)
+        actionBarTextColor = Color(0xFF333333)
+        actionButtonTextColor = Color(0xFF4CAF50)
+        cancelButtonTextColor = Color(0xFF999999)
+        actionBarFontSize = 14f
+    }
+    event {
+        selectionChanged { indices -&gt;
+            println("当前选中 ${indices.size} 项")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>配合表格样式</h2>
+  <p>通过 <code>tableInit</code> 对内部表格进行额外配置：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">BatchActionTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = students
+        batchActions = listOf(
+            BatchAction("批量删除") { indices -&gt; viewModel.delete(indices) }
+        )
+        tableInit = {
+            attr {
+                sortable = true
+                theme = TableTheme.STRIPE
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>batchActions</td><td>List&lt;BatchAction&gt;</td><td>emptyList()</td><td>批量操作定义列表</td></tr>
+    <tr><td>rowHeight</td><td>Float</td><td>48f</td><td>数据行高度</td></tr>
+    <tr><td>theme</td><td>TableTheme</td><td>DEFAULT</td><td>表格主题</td></tr>
+    <tr><td>actionBarHeight</td><td>Float</td><td>56f</td><td>批量操作栏高度</td></tr>
+    <tr><td>actionBarBackgroundColor</td><td>Color</td><td>#E3F2FD</td><td>操作栏背景色</td></tr>
+    <tr><td>actionBarTextColor</td><td>Color</td><td>#333333</td><td>操作栏文字颜色</td></tr>
+    <tr><td>actionButtonTextColor</td><td>Color</td><td>#4A90D9</td><td>操作按钮文字颜色</td></tr>
+    <tr><td>cancelButtonTextColor</td><td>Color</td><td>#999999</td><td>取消按钮文字颜色</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>BatchAction 定义</h2>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>label</td><td>String</td><td>—</td><td>操作标签文本</td></tr>
+    <tr><td>icon</td><td>String?</td><td>null</td><td>操作图标文本（可选）</td></tr>
+    <tr><td>onClick</td><td>(Set&lt;Int&gt;) -&gt; Unit</td><td>{}</td><td>点击回调，参数为选中行索引集合</td></tr>
+  </table>
+
+  <h2>事件回调</h2>
+  <table>
+    <tr><th>事件</th><th>参数</th><th>说明</th></tr>
+    <tr><td>batchAction</td><td>(BatchAction, Set&lt;Int&gt;)</td><td>批量操作执行时触发</td></tr>
+    <tr><td>selectionChanged</td><td>Set&lt;Int&gt;</td><td>选中行变化时触发</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

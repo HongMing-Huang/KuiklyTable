@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>合并表头 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>合并表头</span>
+  </div>
+
+  <h1>合并表头</h1>
+  <p>
+    <code>GroupedHeaderTable</code> 在标准表格上方渲染一层分组表头。每个分组单元格根据
+    <code>HeaderGroup.childColumnKeys</code> 计算 flex 总和，实现跨列合并效果。
+    适合财务报表、成绩单等需要多级表头的场景。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>定义列和分组信息，分组表头自动按 childColumnKeys 跨列合并：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class ScoreReport(
+    val name: String, val age: Int,
+    val chinese: Int, val math: Int, val english: Int
+)
+
+GroupedHeaderTable&lt;ScoreReport&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f, key = "姓名") { it.name },
+            column("年龄", flex = 1f, key = "年龄") { it.age.toString() },
+            column("语文", flex = 1f, key = "语文") { it.chinese.toString() },
+            column("数学", flex = 1f, key = "数学") { it.math.toString() },
+            column("英语", flex = 1f, key = "英语") { it.english.toString() },
+        )
+        data = reports
+        headerGroups = listOf(
+            HeaderGroup("基本信息", listOf("姓名", "年龄")),
+            HeaderGroup("考试成绩", listOf("语文", "数学", "英语")),
+        )
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义分组表头样式</h2>
+  <p>通过样式属性自定义分组表头的背景色、文字颜色等：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">GroupedHeaderTable&lt;ScoreReport&gt; {
+    attr {
+        columns = scoreColumns
+        data = reports
+        headerGroups = listOf(
+            HeaderGroup("基本信息", listOf("姓名", "年龄")),
+            HeaderGroup("成绩", listOf("语文", "数学", "英语")),
+        )
+        groupHeaderHeight = 40f
+        groupHeaderBackgroundColor = Color(0xFFE8EAF6)
+        groupHeaderTextColor = Color(0xFF1A237E)
+        groupHeaderFontSize = 15f
+        tableInit = {
+            attr {
+                theme = TableTheme.BORDERED
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>多列分组</h2>
+  <p>支持任意数量的分组，每个分组可包含不同数量的列：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Employee(
+    val id: Int, val name: String, val department: String,
+    val baseSalary: Int, val bonus: Int, val total: Int
+)
+
+GroupedHeaderTable&lt;Employee&gt; {
+    attr {
+        columns = listOf(
+            column("ID", flex = 1f, key = "id") { it.id.toString() },
+            column("姓名", flex = 2f, key = "name") { it.name },
+            column("部门", flex = 2f, key = "dept") { it.department },
+            column("基本工资", flex = 1f, key = "base") { it.baseSalary.toString() },
+            column("奖金", flex = 1f, key = "bonus") { it.bonus.toString() },
+            column("合计", flex = 1f, key = "total") { it.total.toString() },
+        )
+        data = employees
+        headerGroups = listOf(
+            HeaderGroup("个人信息", listOf("id", "name", "dept")),
+            HeaderGroup("薪资明细", listOf("base", "bonus", "total")),
+        )
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>headerGroups</td><td>List&lt;HeaderGroup&gt;</td><td>emptyList()</td><td>表头分组定义列表</td></tr>
+    <tr><td>groupHeaderHeight</td><td>Float</td><td>36f</td><td>分组表头行高</td></tr>
+    <tr><td>groupHeaderBackgroundColor</td><td>Color</td><td>#F0F0F0</td><td>分组表头背景色</td></tr>
+    <tr><td>groupHeaderTextColor</td><td>Color</td><td>#333333</td><td>分组表头文字颜色</td></tr>
+    <tr><td>groupHeaderFontSize</td><td>Float</td><td>14f</td><td>分组表头文字大小</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>HeaderGroup 定义</h2>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+    <tr><td>title</td><td>String</td><td>分组标题</td></tr>
+    <tr><td>childColumnKeys</td><td>List&lt;String&gt;</td><td>该分组包含的列 key 列表</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

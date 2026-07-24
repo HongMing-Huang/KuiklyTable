@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>内联编辑 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>内联编辑</span>
+  </div>
+
+  <h1>内联编辑</h1>
+  <p>
+    <code>EditableTable</code> 支持对指定列进行单元格内联编辑。点击或双击行（由 <code>EditTrigger</code> 控制）
+    进入编辑态后，显示 Input 输入框及确认/取消按钮。编辑完成后通过 <code>onSave</code> 回调获取新值。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>指定可编辑列的 key 集合，设置保存回调：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val age: Int, val score: Int)
+
+EditableTable&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f, key = "姓名") { it.name },
+            column("年龄", flex = 1f, key = "年龄") { it.age.toString() },
+            column("成绩", flex = 1f, key = "成绩") { it.score.toString() },
+        )
+        data = students.toMutableList()
+        editableColumns = setOf("姓名", "成绩")  // 只允许编辑姓名和成绩
+        editTrigger = EditTrigger.DOUBLE_CLICK   // 双击触发编辑
+        onSave = { item, index, columnKey, newValue -&gt;
+            when (columnKey) {
+                "姓名" -&gt; students[index] = item.copy(name = newValue)
+                "成绩" -&gt; students[index] = item.copy(score = newValue.toIntOrNull() ?: 0)
+            }
+            students[index]  // 返回更新后的数据项
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>单击触发编辑</h2>
+  <p>将 <code>editTrigger</code> 设为 <code>CLICK</code>，单击行即可进入编辑态：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">EditableTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = students
+        editableColumns = setOf("姓名", "年龄", "成绩")
+        editTrigger = EditTrigger.CLICK  // 单击触发
+        onSave = { item, index, columnKey, newValue -&gt;
+            println("编辑行 $index, 列 $columnKey, 新值: $newValue")
+            item  // 返回原数据项或更新后的副本
+        }
+    }
+    event {
+        editStart { index, columnKey -&gt;
+            println("开始编辑: 行 $index, 列 $columnKey")
+        }
+        editEnd { index, columnKey -&gt;
+            println("结束编辑: 行 $index, 列 $columnKey")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>配合表格样式</h2>
+  <p>通过 <code>tableInit</code> 对内部表格设置主题等额外属性：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">EditableTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = students
+        editableColumns = setOf("姓名", "成绩")
+        cellFontSize = 14f
+        cellTextColor = Color(0xFF333333)
+        tableInit = {
+            attr {
+                theme = TableTheme.BORDERED
+            }
+        }
+        onSave = { item, index, columnKey, newValue -&gt;
+            // 处理保存逻辑
+            item
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>editableColumns</td><td>Set&lt;String&gt;</td><td>emptySet()</td><td>可编辑的列 key 集合</td></tr>
+    <tr><td>editTrigger</td><td>EditTrigger</td><td>DOUBLE_CLICK</td><td>编辑触发方式（CLICK / DOUBLE_CLICK）</td></tr>
+    <tr><td>cellTextColor</td><td>Color</td><td>#333333</td><td>单元格文字颜色</td></tr>
+    <tr><td>cellFontSize</td><td>Float</td><td>14f</td><td>单元格文字大小</td></tr>
+    <tr><td>onSave</td><td>((T, Int, String, String) -&gt; T)?</td><td>null</td><td>保存回调，返回更新后的数据项</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>事件回调</h2>
+  <table>
+    <tr><th>事件</th><th>参数</th><th>说明</th></tr>
+    <tr><td>editStart</td><td>(Int, String)</td><td>开始编辑时触发（行索引, 列 key）</td></tr>
+    <tr><td>editEnd</td><td>(Int, String)</td><td>结束编辑时触发（行索引, 列 key）</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

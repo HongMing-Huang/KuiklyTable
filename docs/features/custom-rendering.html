@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自定义渲染 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>自定义渲染</span>
+  </div>
+
+  <h1>自定义渲染</h1>
+  <p>
+    通过 <code>columnRenderer()</code> 函数，你可以在单元格内嵌入任意 KuiklyUI 组件——图片、按钮、进度条、标签等，
+    实现远超纯文本的丰富展示效果。<code>columnRenderer</code> 与 <code>column</code> 可混合使用。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>使用 <code>columnRenderer</code> 在单元格中渲染图片和状态标签：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val avatarUrl: String, val score: Int)
+
+val columns = listOf(
+    columnRenderer&lt;Student&gt;("头像", flex = 1f) { student -&gt;
+        Image { attr { url(student.avatarUrl); size(32f, 32f) } }
+    },
+    column&lt;Student&gt;("姓名", flex = 2f) { it.name },
+    columnRenderer&lt;Student&gt;("状态", flex = 1f) { student -&gt;
+        View {
+            attr {
+                backgroundColor(
+                    if (student.score &gt;= 60) Color(0xFF4CAF50) else Color(0xFFFF4444)
+                )
+                padding(4f, 8f, 4f, 8f)
+                cornerRadius(4f)
+            }
+            Text {
+                attr {
+                    text(if (student.score &gt;= 60) "及格" else "不及格")
+                    color(Color.WHITE)
+                    fontSize(12f)
+                }
+            }
+        }
+    }
+)
+
+Table&lt;Student&gt; {
+    attr {
+        columns = columns
+        data = students
+        theme = TableTheme.BORDERED
+    }
+}</code></pre>
+  </div>
+
+  <h2>渲染操作按钮</h2>
+  <p>在最后一列渲染"编辑"和"删除"按钮，实现行级操作：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">val columns = listOf(
+    column&lt;Student&gt;("姓名", flex = 2f) { it.name },
+    column&lt;Student&gt;("成绩", flex = 1f) { it.score.toString() },
+    columnRenderer&lt;Student&gt;("操作", flex = 1f, align = TableCellAlign.CENTER) { student -&gt;
+        View {
+            attr { flexDirectionRow() }
+            Text {
+                attr {
+                    text("编辑")
+                    color(Color(0xFF4A90D9))
+                    fontSize(13f)
+                    padding(4f, 8f, 4f, 8f)
+                }
+                event { click { println("编辑: ${student.name}") } }
+            }
+            Text {
+                attr {
+                    text("删除")
+                    color(Color(0xFFFF4444))
+                    fontSize(13f)
+                    padding(4f, 8f, 4f, 8f)
+                }
+                event { click { println("删除: ${student.name}") } }
+            }
+        }
+    }
+)</code></pre>
+  </div>
+
+  <h2>进度条渲染</h2>
+  <p>使用 <code>columnRenderer</code> 渲染进度条，直观展示数值比例：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">columnRenderer&lt;Student&gt;("完成度", flex = 2f) { student -&gt;
+    val progress = student.score / 100f
+    View {
+        attr {
+            flexDirectionRow()
+            alignItemsCenter()
+            flex(1f)
+        }
+        // 进度条背景
+        View {
+            attr {
+                flex(1f)
+                height(8f)
+                backgroundColor(Color(0xFFEEEEEE))
+                cornerRadius(4f)
+            }
+            // 进度条填充
+            View {
+                attr {
+                    width(progress * 100f)
+                    height(8f)
+                    backgroundColor(Color(0xFF4CAF50))
+                    cornerRadius(4f)
+                }
+            }
+        }
+        Text {
+            attr {
+                text("${student.score}%")
+                fontSize(12f)
+                marginLeft(8f)
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>title</td><td>String</td><td>—</td><td>列标题文本</td></tr>
+    <tr><td>flex</td><td>Float</td><td>1f</td><td>弹性比例，控制列宽分配</td></tr>
+    <tr><td>key</td><td>String</td><td>title</td><td>列唯一标识，用于排序等功能</td></tr>
+    <tr><td>minWidth</td><td>Float</td><td>0f</td><td>最小宽度（像素）</td></tr>
+    <tr><td>align</td><td>TableCellAlign</td><td>LEFT</td><td>单元格对齐方式</td></tr>
+    <tr><td>sortable</td><td>Boolean</td><td>false</td><td>是否允许按此列排序</td></tr>
+    <tr><td>comparator</td><td>((T, T) -&gt; Int)?</td><td>null</td><td>自定义排序比较函数</td></tr>
+    <tr><td>renderer</td><td>ViewContainer.(T) -&gt; Unit</td><td>—</td><td>自定义渲染函数，在单元格容器内自由布局</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>
+

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分页 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>分页</span>
+  </div>
+
+  <h1>分页</h1>
+  <p>
+    <code>PaginatedTable</code> 对全量数据自动进行 subList 切片分页，并在表格下方渲染分页导航栏
+    （上一页 / 页码 / 下一页 / 总条数）。支持自定义每页条数和页码变化回调。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>传入全量数据，设置 <code>pageSize</code>，即可自动分页：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val age: Int, val score: Int)
+
+// 50 条数据
+val allStudents = (1..50).map {
+    Student("学生$it", 16 + it % 4, 60 + it % 40)
+}
+
+PaginatedTable&lt;Student&gt; {
+    attr {
+        data = allStudents
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("年龄", flex = 1f, align = TableCellAlign.CENTER) { it.age.toString() },
+            column("成绩", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+        )
+        pageSize = 10
+        theme = TableTheme.BORDERED
+    }
+    event {
+        pageChanged { page -&gt; println("切换到第 $page 页") }
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义每页条数选项</h2>
+  <p>通过 <code>pageSizeOptions</code> 提供可选的每页条数列表：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">PaginatedTable&lt;Student&gt; {
+    attr {
+        data = allStudents
+        columns = studentColumns
+        pageSize = 20
+        pageSizeOptions = listOf(10, 20, 50, 100)
+        theme = TableTheme.STRIPE
+    }
+    event {
+        pageChanged { page -&gt; viewModel.onPageChanged(page) }
+        pageSizeChanged { size -&gt; viewModel.onPageSizeChanged(size) }
+    }
+}</code></pre>
+  </div>
+
+  <h2>配合表格样式</h2>
+  <p>通过 <code>tableInit</code> 回调对内部表格进行额外配置（如排序、选择等）：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">PaginatedTable&lt;Student&gt; {
+    attr {
+        data = allStudents
+        columns = studentColumns
+        pageSize = 10
+        tableInit = {
+            attr {
+                sortable = true
+                selectable = true
+                stickyHeader = true
+            }
+            event {
+                rowClick { item, index -&gt;
+                    println("点击: ${item.name}")
+                }
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>全量数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>pageSize</td><td>Int</td><td>20</td><td>每页条数</td></tr>
+    <tr><td>pageSizeOptions</td><td>List&lt;Int&gt;</td><td>[10, 20, 50, 100]</td><td>可选每页条数列表</td></tr>
+    <tr><td>theme</td><td>TableTheme</td><td>DEFAULT</td><td>表格主题</td></tr>
+    <tr><td>rowHeight</td><td>Float</td><td>48f</td><td>数据行高度</td></tr>
+    <tr><td>headerHeight</td><td>Float</td><td>44f</td><td>表头高度</td></tr>
+    <tr><td>paginationBarHeight</td><td>Float</td><td>48f</td><td>分页栏高度</td></tr>
+    <tr><td>paginationBarBackgroundColor</td><td>Color</td><td>#FAFAFA</td><td>分页栏背景色</td></tr>
+    <tr><td>paginationBarTextColor</td><td>Color</td><td>#333333</td><td>分页栏文字颜色</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>事件回调</h2>
+  <table>
+    <tr><th>事件</th><th>参数</th><th>说明</th></tr>
+    <tr><td>pageChanged</td><td>Int（新页码）</td><td>页码变化时触发</td></tr>
+    <tr><td>pageSizeChanged</td><td>Int（新每页条数）</td><td>每页条数变化时触发</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

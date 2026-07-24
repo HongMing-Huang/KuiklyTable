@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>滑动操作 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>滑动操作</span>
+  </div>
+
+  <h1>滑动操作</h1>
+  <p>
+    <code>SwipeableTable</code> 在表格最右侧自动追加一个"操作"列，为每行渲染可点击的操作按钮。
+    通过 <code>SwipeAction</code> 定义操作项（标签、颜色、图标），并使用 <code>actionBinder</code>
+    将操作绑定到具体数据项。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>定义滑动操作列表，每行右侧自动出现操作按钮：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val score: Int)
+
+SwipeableTable&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("成绩", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+        )
+        data = students
+        swipeActions = listOf(
+            SwipeAction("编辑", color = Color(0xFF4A90D9)) {},
+            SwipeAction("删除", color = Color(0xFFFF4444)) {},
+        )
+        actionBinder = { student, action -&gt;
+            when (action.label) {
+                "编辑" -&gt; println("编辑: ${student.name}")
+                "删除" -&gt; println("删除: ${student.name}")
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义按钮宽度</h2>
+  <p>通过 <code>actionButtonWidth</code> 控制每个操作按钮的宽度：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">SwipeableTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = students
+        actionButtonWidth = 80f  // 每个按钮 80px 宽
+        swipeActions = listOf(
+            SwipeAction("置顶", color = Color(0xFFFF9800)) {},
+            SwipeAction("标记", color = Color(0xFF4CAF50)) {},
+            SwipeAction("删除", color = Color(0xFFFF4444)) {},
+        )
+        actionBinder = { student, action -&gt;
+            println("${action.label}: ${student.name}")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>配合表格样式</h2>
+  <p>通过 <code>tableInit</code> 对内部表格设置主题等额外属性：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">SwipeableTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = students
+        rowHeight = 52f
+        swipeActions = listOf(
+            SwipeAction("编辑", color = Color(0xFF2196F3)) {},
+            SwipeAction("删除", color = Color(0xFFE53935)) {},
+        )
+        actionBinder = { student, action -&gt;
+            when (action.label) {
+                "编辑" -&gt; viewModel.editStudent(student)
+                "删除" -&gt; viewModel.deleteStudent(student)
+            }
+        }
+        tableInit = {
+            attr {
+                theme = TableTheme.STRIPE
+            }
+            event {
+                rowClick { item, index -&gt;
+                    println("点击行: ${item.name}")
+                }
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>swipeActions</td><td>List&lt;SwipeAction&gt;</td><td>emptyList()</td><td>滑动操作列表</td></tr>
+    <tr><td>actionButtonWidth</td><td>Float</td><td>72f</td><td>每个操作按钮宽度</td></tr>
+    <tr><td>rowHeight</td><td>Float</td><td>48f</td><td>数据行高度</td></tr>
+    <tr><td>actionBinder</td><td>((T, SwipeAction) -&gt; Unit)?</td><td>null</td><td>将操作绑定到数据项的回调</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>SwipeAction 定义</h2>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>label</td><td>String</td><td>—</td><td>操作标签文本</td></tr>
+    <tr><td>color</td><td>Color</td><td>#FF4444</td><td>操作按钮背景色</td></tr>
+    <tr><td>icon</td><td>String?</td><td>null</td><td>操作图标文本（可选）</td></tr>
+    <tr><td>onClick</td><td>() -&gt; Unit</td><td>{}</td><td>点击回调（无参数，actionBinder 优先）</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>
+

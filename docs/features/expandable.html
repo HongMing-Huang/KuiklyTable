@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展开折叠 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>展开折叠</span>
+  </div>
+
+  <h1>展开折叠</h1>
+  <p>
+    <code>ExpandableTable</code> 在表格最左侧添加展开/折叠图标列，点击后在对应行下方插入展开详情行，
+    用于展示行的详细信息。展开内容通过 <code>expandRenderer</code> 自定义渲染。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>定义列、数据，并通过 <code>expandRenderer</code> 渲染展开内容：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Order(val id: String, val customer: String, val amount: Int, val address: String)
+
+ExpandableTable&lt;Order&gt; {
+    attr {
+        columns = listOf(
+            column("订单号", flex = 2f) { it.id },
+            column("客户", flex = 2f) { it.customer },
+            column("金额", flex = 1f, align = TableCellAlign.RIGHT) { it.amount.toString() },
+        )
+        data = orders
+        expandRenderer = { order -&gt;
+            View {
+                attr { flexDirectionColumn(); padding(8f, 12f, 8f, 12f) }
+                Text { attr { text("收货地址: ${order.address}"); fontSize(13f) } }
+                Text { attr { text("订单详情: 共 3 件商品"); fontSize(13f); marginTop(4f) } }
+            }
+        }
+    }
+    event {
+        expandChanged { index, expanded -&gt;
+            println("行 $index ${if (expanded) "展开" else "折叠"}")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义展开图标</h2>
+  <p>通过 <code>expandIcon</code> 和 <code>collapseIcon</code> 自定义展开/折叠状态的图标文本：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">ExpandableTable&lt;Order&gt; {
+    attr {
+        columns = orderColumns
+        data = orders
+        expandIcon = "＋"      // 折叠态图标
+        collapseIcon = "－"    // 展开态图标
+        expandColumnWidth = 40f // 图标列宽度
+        expandRenderer = { order -&gt;
+            Text { attr { text("详细信息: ${order.id}"); fontSize(13f) } }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>固定展开行高度</h2>
+  <p>设置 <code>expandRowHeight</code> 为固定值，确保展开行高度一致：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">ExpandableTable&lt;Order&gt; {
+    attr {
+        columns = orderColumns
+        data = orders
+        expandRowHeight = 80f  // 固定展开行高度
+        expandRenderer = { order -&gt;
+            View {
+                attr { flexDirectionColumn(); padding(8f) }
+                Text { attr { text("地址: ${order.address}") } }
+                Text { attr { text("备注: 请尽快发货"); marginTop(4f) } }
+            }
+        }
+    }
+    event {
+        rowClick { item, index -&gt;
+            println("点击订单: ${item.id}")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>expandRenderer</td><td>(ViewContainer.(T) -&gt; Unit)?</td><td>null</td><td>展开内容渲染器</td></tr>
+    <tr><td>expandColumnWidth</td><td>Float</td><td>32f</td><td>展开/折叠图标列宽度</td></tr>
+    <tr><td>expandIcon</td><td>String</td><td>"▶"</td><td>折叠态图标文本</td></tr>
+    <tr><td>collapseIcon</td><td>String</td><td>"▼"</td><td>展开态图标文本</td></tr>
+    <tr><td>expandRowHeight</td><td>Float</td><td>0f（自动）</td><td>展开行高度，0 表示自动高度</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>事件回调</h2>
+  <table>
+    <tr><th>事件</th><th>参数</th><th>说明</th></tr>
+    <tr><td>expandChanged</td><td>(Int, Boolean)</td><td>展开状态变化时触发（行索引, 是否展开）</td></tr>
+    <tr><td>rowClick</td><td>(T, Int)</td><td>行点击事件</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

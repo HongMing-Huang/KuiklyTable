@@ -76,6 +76,9 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
     /** 内部加载状态，控制加载中指示器的显示 */
     var loading: Boolean by observable(false)
 
+    /** 已加载的数据总量，用于跟踪加载进度 */
+    var totalLoadedItems: Int by observable(0)
+
     // endregion
 
     // region 生命周期
@@ -86,6 +89,7 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
     override fun created() {
         super.created()
         allData = attr.data
+        totalLoadedItems = attr.data.size
         loading = attr.isLoading
     }
 
@@ -96,13 +100,31 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
     /**
      * 追加新数据到表格。
      *
-     * 将 [newItems] 拼接到现有 [allData] 末尾，并自动将 [loading] 置为 false。
+     * 将 [newItems] 拼接到现有 [allData] 末尾，并自动将 [loading] 置为 false，
+     * 同时更新 [totalLoadedItems]。
      *
      * @param newItems 新数据项列表
      */
     fun appendData(newItems: List<T>) {
         allData = allData + newItems
+        totalLoadedItems = allData.size
         loading = false
+    }
+
+    /**
+     * 外部调用的便捷加载方法，追加数据并自动检测是否需要继续加载。
+     *
+     * 与 [appendData] 类似，但追加后会根据当前数据量与阈值的对比
+     * 自动判断是否需要再次触发加载。
+     *
+     * @param items 新加载的数据项列表
+     */
+    fun loadMore(items: List<T>) {
+        appendData(items)
+        // 如果追加后数据量仍较少且还有更多数据，自动再次触发加载
+        if (attr.hasMore && !loading && allData.size <= attr.loadThreshold * 2) {
+            triggerLoadMore()
+        }
     }
 
     /**
@@ -113,11 +135,26 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
      * - 还有更多数据（[InfiniteTableAttr.hasMore] == true）
      * - 当前可见行索引距末尾不足 [InfiniteTableAttr.loadThreshold] 行
      *
+     * 同时提供无参重载版本 [checkAndLoadMore]，基于内部数据量自动判断。
+     *
      * @param visibleIndex 当前最后可见行索引
      * @param totalItems 总数据条数
      */
     fun checkAndLoadMore(visibleIndex: Int, totalItems: Int) {
         if (!loading && attr.hasMore && totalItems - visibleIndex <= attr.loadThreshold) {
+            loading = true
+            event.onLoadMore?.invoke()
+        }
+    }
+
+    /**
+     * 无参版本的加载检测，基于内部 [allData] 数据量自动判断。
+     *
+     * 当数据量小于 [InfiniteTableAttr.loadThreshold] * 2 且还有更多数据时触发加载。
+     * 适用于外部无法获取可见索引的场景。
+     */
+    fun checkAndLoadMore() {
+        if (!loading && attr.hasMore && allData.size <= attr.loadThreshold * 2) {
             loading = true
             event.onLoadMore?.invoke()
         }
@@ -174,6 +211,13 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
                     attr {
                         columns = ctx.attr.columns
                         data = ctx.allData
+                    }
+                    // 通过行点击事件估算滚动位置，自动触发加载
+                    event {
+                        rowClick { _, clickedIndex ->
+                            val totalItems = ctx.allData.size
+                            ctx.checkAndLoadMore(clickedIndex, totalItems)
+                        }
                     }
                     ctx.attr.tableInit?.invoke(this)
                 }

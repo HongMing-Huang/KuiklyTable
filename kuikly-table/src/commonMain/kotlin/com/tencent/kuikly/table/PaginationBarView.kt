@@ -91,6 +91,9 @@ class PaginatedTableAttr<T> : ComposeAttr() {
 
     /** 分页栏字号 */
     var paginationBarFontSize: Float = 14f
+
+    /** 分页栏中可见的最大页码按钮数量，默认 5 */
+    var maxVisiblePages: Int = 5
 }
 
 /**
@@ -241,6 +244,57 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
         }
     }
 
+    /**
+     * 计算当前可见的页码列表。
+     *
+     * 返回列表中的元素：
+     * - 正整数表示页码
+     * - -1 表示省略号位置
+     *
+     * 例如：[1, -1, 4, 5, 6, 7, 8, -1, 20]
+     *
+     * @return 可见页码列表
+     */
+    fun getVisiblePages(): List<Int> {
+        val total = totalPages
+        val current = currentPage
+        val maxVisible = attr.maxVisiblePages
+
+        // 总页数小于等于可见数量，全部显示
+        if (total <= maxVisible) {
+            return (1..total).toList()
+        }
+
+        val pages = mutableListOf<Int>()
+        // 始终显示第一页
+        pages.add(1)
+
+        // 计算中间页码范围
+        val halfRange = (maxVisible - 2) / 2  // 去掉首尾页后的半宽
+        val rangeStart = max(2, current - halfRange)
+        val rangeEnd = minOf(total - 1, current + halfRange)
+
+        // 如果范围起点不紧跟第一页，加省略号
+        if (rangeStart > 2) {
+            pages.add(-1)
+        }
+
+        // 添加中间页码
+        for (p in rangeStart..rangeEnd) {
+            pages.add(p)
+        }
+
+        // 如果范围终点不紧跟末页，加省略号
+        if (rangeEnd < total - 1) {
+            pages.add(-1)
+        }
+
+        // 始终显示最后一页
+        pages.add(total)
+
+        return pages
+    }
+
     // endregion
 
     // region body 布局
@@ -300,13 +354,45 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
                     }
                 }
 
-                // 页码指示器
-                Text {
-                    attr {
-                        text("${ctx.currentPage} / ${ctx.totalPages}")
-                        color(ctx.attr.paginationBarTextColor)
-                        fontSize(ctx.attr.paginationBarFontSize)
-                        padding(12f)
+                // 页码按钮组
+                val pages = ctx.getVisiblePages()
+                for (page in pages) {
+                    if (page == -1) {
+                        // 省略号
+                        Text {
+                            attr {
+                                text("...")
+                                color(ctx.attr.paginationBarTextColor)
+                                fontSize(ctx.attr.paginationBarFontSize)
+                                padding(0f, 4f, 0f, 4f)
+                            }
+                        }
+                    } else {
+                        View {
+                            attr {
+                                width(32f)
+                                height(32f)
+                                justifyContentCenter()
+                                alignItemsCenter()
+                                borderRadius(4f)
+                                if (page == ctx.currentPage) {
+                                    backgroundColor(Color(0xFF4A90D9))
+                                }
+                            }
+                            event {
+                                click { ctx.goToPage(page) }
+                            }
+                            Text {
+                                attr {
+                                    text(page.toString())
+                                    color(
+                                        if (page == ctx.currentPage) Color(0xFFFFFFFF)
+                                        else ctx.attr.paginationBarTextColor
+                                    )
+                                    fontSize(ctx.attr.paginationBarFontSize)
+                                }
+                            }
+                        }
                     }
                 }
 

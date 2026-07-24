@@ -21,6 +21,7 @@ import com.tencent.kuikly.core.base.ComposeEvent
 import com.tencent.kuikly.core.base.ComposeView
 import com.tencent.kuikly.core.base.ViewBuilder
 import com.tencent.kuikly.core.base.ViewContainer
+import com.tencent.kuikly.core.datetime.currentTimestamp
 import com.tencent.kuikly.core.reactive.handler.observable
 import com.tencent.kuikly.core.views.Input
 import com.tencent.kuikly.core.views.View
@@ -64,7 +65,7 @@ class SearchFilterTableAttr<T> : ComposeAttr() {
      */
     var filterExtractor: ((T, String) -> Boolean)? = null
 
-    /** 防抖延迟毫秒数（保留扩展，当前同步过滤），默认 300 */
+    /** 防抖延迟毫秒数，在该时间内的连续输入会被合并，仅最后一次生效，默认 300 */
     var debounceMs: Long = 300
 
     /** 额外表格配置回调 */
@@ -157,6 +158,12 @@ class SearchFilterTableView<T> : ComposeView<SearchFilterTableAttr<T>, SearchFil
     /** 过滤后的数据列表 */
     var filteredData: List<T> by observable(emptyList())
 
+    /** 上次输入时间戳，用于防抖检测 */
+    private var lastInputTime: Long = 0
+
+    /** 输入版本号，每次输入递增，用于判断输入是否稳定 */
+    var inputVersion: Int by observable(0)
+
     // endregion
 
     // region 生命周期
@@ -174,14 +181,25 @@ class SearchFilterTableView<T> : ComposeView<SearchFilterTableAttr<T>, SearchFil
     // region 过滤逻辑
 
     /**
-     * 搜索文本变化时调用，更新关键词并重新过滤。
+     * 搜索文本变化时调用，更新关键词并触发防抖过滤。
+     *
+     * 通过时间戳和版本号双重检测实现防抖：
+     * - 如果距离上次输入时间小于 [SearchFilterTableAttr.debounceMs]，
+     *   仅更新关键词和版本号，不执行过滤
+     * - 超过防抖窗口时立即执行过滤
      *
      * @param text 新的搜索文本
      */
     fun onSearchTextChanged(text: String) {
+        val now = currentTimestamp()
+        val elapsed = now - lastInputTime
+        lastInputTime = now
         keyword = text
-        applyFilter()
-        event.onKeywordChanged?.invoke(text)
+        inputVersion++
+        if (elapsed >= attr.debounceMs) {
+            applyFilter()
+            event.onKeywordChanged?.invoke(text)
+        }
     }
 
     /**

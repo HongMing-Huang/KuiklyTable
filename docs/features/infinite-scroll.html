@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>无限滚动 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>无限滚动</span>
+  </div>
+
+  <h1>无限滚动</h1>
+  <p>
+    <code>InfiniteTable</code> 支持滚动到底部自动加载更多数据。内部包装 <code>TableView</code>，
+    在表格底部显示"加载中"指示器或"没有更多了"提示。外部通过 <code>appendData</code> 追加新数据。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>设置初始数据、加载阈值和是否还有更多数据，注册 <code>onLoadMore</code> 回调：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val score: Int)
+
+InfiniteTable&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("成绩", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+        )
+        data = initialStudents  // 初始 20 条数据
+        loadThreshold = 5       // 距离底部 5 行时触发加载
+        hasMore = true          // 还有更多数据
+    }
+    event {
+        onLoadMore = {
+            // 异步加载下一页数据后调用 appendData
+            val nextPage = fetchNextPage()
+            appendData(nextPage)
+            if (nextPage.size &lt; 20) {
+                // 数据不足一页，标记无更多数据
+                attr.hasMore = false
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义提示文案</h2>
+  <p>通过 <code>loadingText</code> 和 <code>noMoreText</code> 自定义加载状态提示：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">InfiniteTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = initialStudents
+        loadingText = "正在加载更多数据..."
+        noMoreText = "— 已加载全部 —"
+        hasMore = true
+        loadThreshold = 3
+    }
+    event {
+        onLoadMore = {
+            coroutineScope.launch {
+                val data = api.fetchStudents(page = currentPage + 1)
+                appendData(data)
+                currentPage++
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>配合表格主题</h2>
+  <p>通过 <code>tableInit</code> 对内部表格设置主题、排序等属性：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">InfiniteTable&lt;Student&gt; {
+    attr {
+        columns = studentColumns
+        data = initialStudents
+        hasMore = true
+        tableInit = {
+            attr {
+                theme = TableTheme.STRIPE
+                sortable = true
+            }
+            event {
+                rowClick { item, index -&gt;
+                    println("点击: ${item.name}")
+                }
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>data</td><td>List&lt;T&gt;</td><td>emptyList()</td><td>初始数据列表</td></tr>
+    <tr><td>columns</td><td>List&lt;TableColumn&lt;T&gt;&gt;</td><td>emptyList()</td><td>列定义列表</td></tr>
+    <tr><td>loadThreshold</td><td>Int</td><td>5</td><td>距离底部多少行时触发加载</td></tr>
+    <tr><td>loadingText</td><td>String</td><td>"加载中..."</td><td>加载中提示文案</td></tr>
+    <tr><td>noMoreText</td><td>String</td><td>"没有更多了"</td><td>无更多数据提示文案</td></tr>
+    <tr><td>isLoading</td><td>Boolean</td><td>false</td><td>外部控制初始加载状态</td></tr>
+    <tr><td>hasMore</td><td>Boolean</td><td>true</td><td>是否还有更多数据</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>额外表格配置回调</td></tr>
+  </table>
+
+  <h2>事件回调</h2>
+  <table>
+    <tr><th>事件</th><th>参数</th><th>说明</th></tr>
+    <tr><td>onLoadMore</td><td>Unit</td><td>滚动到底部或手动触发时调用</td></tr>
+  </table>
+
+  <h2>核心方法</h2>
+  <table>
+    <tr><th>方法</th><th>说明</th></tr>
+    <tr><td>appendData(newItems: List&lt;T&gt;)</td><td>追加新数据到表格，自动将 loading 置为 false</td></tr>
+    <tr><td>triggerLoadMore()</td><td>手动触发加载更多</td></tr>
+    <tr><td>setLoading(isLoading: Boolean)</td><td>手动设置加载状态</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

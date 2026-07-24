@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>空状态 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>空状态</span>
+  </div>
+
+  <h1>空状态</h1>
+  <p>
+    <code>TableWithEmptyState</code> 包装了 <code>TableView</code>，根据 <code>isEmpty</code> 属性条件渲染：
+    有数据时显示表格，无数据时显示友好的空状态占位视图（可选图标 + 提示文案）。
+  </p>
+
+  <h2>基础用法</h2>
+  <p>传入 <code>isEmpty</code> 判断条件，设置空状态提示文案：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val score: Int)
+
+val students: List&lt;Student&gt; = emptyList()  // 当前无数据
+
+TableWithEmptyState&lt;Student&gt; {
+    attr {
+        isEmpty = students.isEmpty()
+        emptyText = "暂无学生数据"
+        emptyIcon = "📋"
+        tableInit = {
+            attr {
+                columns = listOf(
+                    column("姓名", flex = 2f) { it.name },
+                    column("成绩", flex = 1f) { it.score.toString() },
+                )
+                data = students
+                theme = TableTheme.BORDERED
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义空状态样式</h2>
+  <p>通过样式属性自定义空状态的颜色、字号和容器高度：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">TableWithEmptyState&lt;Student&gt; {
+    attr {
+        isEmpty = students.isEmpty()
+        emptyText = "还没有数据，快去添加吧！"
+        emptyTextColor = Color(0xFFAAAAAA)
+        emptyTextSize = 16f
+        emptyIcon = "📭"
+        containerHeight = 300f
+        tableInit = {
+            attr {
+                columns = studentColumns
+                data = students
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>动态切换</h2>
+  <p>根据数据加载状态动态显示表格或空状态：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">// ViewModel 中
+var students: List&lt;Student&gt; by observable(emptyList())
+
+// 视图中
+TableWithEmptyState&lt;Student&gt; {
+    attr {
+        isEmpty = students.isEmpty()
+        emptyText = if (isLoading) "加载中..." else "暂无数据"
+        emptyIcon = if (isLoading) "⏳" else "📭"
+        tableInit = {
+            attr {
+                columns = studentColumns
+                data = students
+                theme = TableTheme.STRIPE
+            }
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>API 参考</h2>
+  <table>
+    <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>isEmpty</td><td>Boolean</td><td>false</td><td>是否为空状态，由外部根据数据判断</td></tr>
+    <tr><td>emptyText</td><td>String</td><td>"暂无数据"</td><td>空状态提示文案</td></tr>
+    <tr><td>emptyTextColor</td><td>Color</td><td>#999999</td><td>空状态文案颜色</td></tr>
+    <tr><td>emptyTextSize</td><td>Float</td><td>14f</td><td>空状态文案字号</td></tr>
+    <tr><td>emptyIcon</td><td>String?</td><td>null</td><td>空状态图标文本（可选），显示在文案上方</td></tr>
+    <tr><td>containerHeight</td><td>Float</td><td>400f</td><td>容器高度</td></tr>
+    <tr><td>tableInit</td><td>(TableView&lt;T&gt;.() -&gt; Unit)?</td><td>null</td><td>内部表格初始化回调，null 时不渲染表格</td></tr>
+  </table>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>
