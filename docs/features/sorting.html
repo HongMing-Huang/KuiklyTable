@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>排序 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>排序</span>
+  </div>
+
+  <h1>排序</h1>
+  <p>
+    KuiklyTable 内置三态循环排序：点击表头列标题，依次循环 <strong>无排序 → 升序 → 降序</strong>。
+    支持为每列指定自定义 <code>comparator</code>，实现数值、日期等复杂类型的精确排序。
+  </p>
+
+  <h2>基础排序</h2>
+  <p>为需要排序的列设置 <code>sortable = true</code>，并在 <code>attr {}</code> 中开启全局 <code>sortable</code>：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val age: Int, val score: Int)
+
+val students = listOf(
+    Student("张三", 18, 92),
+    Student("李四", 17, 85),
+    Student("王五", 16, 78),
+    Student("赵六", 18, 95),
+)
+
+Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f, sortable = true) { it.name },
+            column("年龄", flex = 1f, sortable = true) { it.age.toString() },
+            column("成绩", flex = 1f, sortable = true) { it.score.toString() },
+        )
+        data = students
+        sortable = true
+        theme = TableTheme.DEFAULT
+    }
+}</code></pre>
+  </div>
+
+  <h2>自定义 comparator</h2>
+  <p>
+    默认按文本字典序排序。对数值类型，传入 <code>comparator</code> 参数实现精确比较：
+  </p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f, sortable = true) { it.name },
+            column("年龄", flex = 1f, sortable = true,
+                comparator = { a, b -&gt; a.age.compareTo(b.age) }
+            ) { it.age.toString() },
+            column("成绩", flex = 1f, sortable = true,
+                comparator = { a, b -&gt; a.score.compareTo(b.score) }
+            ) { it.score.toString() },
+        )
+        data = students
+        sortable = true
+    }
+}</code></pre>
+  </div>
+
+  <h2>监听排序变化</h2>
+  <p>通过 <code>event {}</code> 中的 <code>sortChanged</code> 回调获取当前排序状态：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f, sortable = true) { it.name },
+            column("成绩", flex = 1f, sortable = true,
+                comparator = { a, b -&gt; a.score.compareTo(b.score) }
+            ) { it.score.toString() },
+        )
+        data = students
+        sortable = true
+    }
+    event {
+        sortChanged { state -&gt;
+            // state.columnKey — 排序列的 key
+            // state.ascending  — true 为升序，false 为降序
+            println("排序列: ${state.columnKey}")
+            println("方向: ${if (state.ascending) "升序" else "降序"}")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>SortState 说明</h2>
+  <p>
+    <strong>columnKey</strong>：当前排序列的标识，对应 <code>column()</code> 创建时的 <code>key</code> 参数（默认取 <code>title</code>）。<br>
+    <strong>ascending</strong>：布尔值，<code>true</code> 表示升序，<code>false</code> 表示降序。
+  </p>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

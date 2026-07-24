@@ -15,6 +15,7 @@
 
 package com.tencent.kuikly.table
 
+import com.tencent.kuikly.core.base.Color
 import com.tencent.kuikly.core.base.ViewContainer
 
 /**
@@ -200,4 +201,86 @@ fun <T> columnRenderer(
 data class SortState(
     val columnKey: String,
     val ascending: Boolean = true,
+)
+
+/**
+ * 树形表格节点包装。
+ *
+ * @param T 数据行类型
+ * @param data 节点数据
+ * @param children 子节点列表，null 表示叶子节点
+ * @param id 节点唯一标识，用于展开/折叠状态管理
+ * @param expanded 是否展开，默认 false
+ */
+data class TreeNode<T>(
+    val data: T,
+    val children: List<TreeNode<T>>? = null,
+    val id: String = "",
+    val expanded: Boolean = false,
+)
+
+/**
+ * 分页信息。
+ *
+ * @param currentPage 当前页码（从 1 开始）
+ * @param pageSize 每页条数
+ * @param totalItems 总数据条数
+ */
+data class PageInfo(
+    val currentPage: Int = 1,
+    val pageSize: Int = 20,
+    val totalItems: Int = 0,
+) {
+    /** 总页数 */
+    val totalPages: Int get() = if (totalItems == 0) 0 else (totalItems + pageSize - 1) / pageSize
+}
+
+/**
+ * 搜索过滤条件。
+ *
+ * @param keyword 搜索关键词
+ * @param targetColumnKeys 目标列 key 列表，空表示搜索所有列
+ */
+data class FilterCriteria(
+    val keyword: String = "",
+    val targetColumnKeys: List<String> = emptyList(),
+)
+
+/**
+ * 滑动操作定义。
+ *
+ * @param label 操作标签文本
+ * @param color 操作按钮背景色
+ * @param icon 操作图标文本（可选）
+ * @param onClick 点击回调
+ */
+data class SwipeAction(
+    val label: String,
+    val color: Color = Color(0xFFFF4444),
+    val icon: String? = null,
+    val onClick: () -> Unit = {},
+)
+
+/**
+ * 表头分组定义。
+ *
+ * @param title 分组标题
+ * @param childColumnKeys 该分组包含的列 key 列表
+ */
+data class HeaderGroup(
+    val title: String,
+    val childColumnKeys: List<String>,
+)
+
+/**
+ * 批量操作定义。
+ *
+ * @param label 操作标签文本
+ * @param icon 操作图标文本（可选）
+ * @param onClick 点击回调，参数为选中行的索引集合
+ */
+data class BatchAction(
+    val label: String,
+    val icon: String? = null,
+    val onClick: (Set<Int>) -> Unit = {},
 )

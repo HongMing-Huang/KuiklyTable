@@ -356,7 +356,7 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
                             }
 
                             // 数据行
-                            vbind({ ctx.dataVersion.toLong() * 1000000007L + ctx.selectedIndices.hashCode().toLong() }) {
+                            vbind({ ctx.dataVersion.toLong() }) {
                                 for ((index, item) in ctx.getSortedData().withIndex()) {
                                     TableRow<T> {
                                         attr {
@@ -422,8 +422,8 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
                         }
                     }
 
-                    // 使用 vbind 监听数据和选中状态变化驱动行重建
-                    vbind({ ctx.dataVersion.toLong() * 1000000007L + ctx.selectedIndices.hashCode().toLong() }) {
+                    // 使用 vbind 监听数据变化驱动行重建，选中态通过 observable 响应式自动更新
+                    vbind({ ctx.dataVersion.toLong() }) {
                         for ((index, item) in ctx.getSortedData().withIndex()) {
                             TableRow<T> {
                                 attr {

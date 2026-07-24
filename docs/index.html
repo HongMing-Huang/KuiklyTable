@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KuiklyTable — 跨平台数据驱动表格组件</title>
+  <meta name="description" content="基于 KuiklyUI 的跨平台数据驱动表格组件，支持 Android、iOS、macOS、JS/H5、OHOS 五端运行。">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="#features">功能</a></li>
+    <li><a href="#quickstart">快速开始</a></li>
+    <li><a href="#platforms">平台</a></li>
+    <li>
+      <a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">
+        ⭐ GitHub
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>KuiklyTable</h1>
+  <p class="subtitle">基于 KuiklyUI 的跨平台数据驱动表格组件</p>
+  <div class="hero-buttons">
+    <a class="btn btn-primary" href="#quickstart">快速开始</a>
+    <a class="btn btn-outline" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">查看源码</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section" id="features">
+  <h2 class="section-title">功能特性</h2>
+  <p class="section-desc">丰富的表格能力，覆盖企业级数据展示的各种场景</p>
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3>基础表格</h3>
+      <p>数据驱动，DSL 语法简洁定义列与数据源，开箱即用。</p>
+      <a href="features/basic-table.html">查看详情 →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔀</div>
+      <h3>排序</h3>
+      <p>三态循环排序（无 → 升序 → 降序），支持自定义 comparator。</p>
+      <a href="features/sorting.html">查看详情 →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">✅</div>
+      <h3>行选择</h3>
+      <p>多选高亮，selectionChanged 回调，配合排序使用更强大。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>4 种主题</h3>
+      <p>DEFAULT / STRIPE / BORDERED / MINIMAL，一行切换风格。</p>
+      <a href="features/themes.html">查看详情 →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🖌️</div>
+      <h3>自定义渲染</h3>
+      <p>columnRenderer 嵌入文本、图片、按钮、进度条等任意组件。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">↔️</div>
+      <h3>双向滚动</h3>
+      <p>横向滚动 + 吸顶表头，大数据量下流畅浏览。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📄</div>
+      <h3>分页</h3>
+      <p>配合数据切片实现前后翻页，展示页码与总条数。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h3>搜索过滤</h3>
+      <p>实时输入过滤，支持多字段模糊匹配。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🌲</div>
+      <h3>树形表格</h3>
+      <p>层级数据展开/折叠，TreeNode 递归渲染。</p>
+      <a href="features/tree-table.html">查看详情 →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🧊</div>
+      <h3>冻结列</h3>
+      <p>首列固定不随横向滚动，数据对照更直观。</p>
+      <a href="features/frozen-columns.html">查看详情 →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">♾️</div>
+      <h3>无限滚动</h3>
+      <p>InfiniteTable 自动触发加载下一页，虚拟化渲染。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📂</div>
+      <h3>展开折叠</h3>
+      <p>ExpandableTableRow 点击展开详情面板。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">✏️</div>
+      <h3>内联编辑</h3>
+      <p>EditableTableRow 点击编辑按钮切换为输入模式。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>批量操作</h3>
+      <p>CheckboxTableRow + BatchActionBar，批量删除/导出。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🗂️</div>
+      <h3>合并表头</h3>
+      <p>TableHeaderGroup + TableGroupCell，跨列分组标题。</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📭</div>
+      <h3>空状态</h3>
+      <p>TableEmptyView 无数据时展示友好占位图与提示。</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section class="section section-alt code-section" id="quickstart">
+  <h2 class="section-title">快速开始</h2>
+  <p class="section-desc">只需几行 Kotlin DSL 代码，即可渲染一个功能完整的表格</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">// 1. 定义数据类
+data class Student(
+    val name: String,
+    val age: Int,
+    val score: Int,
+    val grade: String,
+)
+
+// 2. 准备数据
+val students = listOf(
+    Student("张三", 18, 92, "高三"),
+    Student("李四", 17, 85, "高二"),
+    Student("王五", 16, 78, "高一"),
+    Student("赵六", 18, 95, "高三"),
+)
+
+// 3. 渲染表格
+Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("年龄", flex = 1f, align = TableCellAlign.CENTER) { it.age.toString() },
+            column("成绩", flex = 1f, align = TableCellAlign.CENTER) { it.score.toString() },
+            column("年级", flex = 1f) { it.grade },
+        )
+        data = students
+        theme = TableTheme.BORDERED
+    }
+}</code></pre>
+  </div>
+</section>
+
+<!-- Maven Setup -->
+<section class="section" id="install">
+  <h2 class="section-title">安装接入</h2>
+  <p class="section-desc">在项目中添加依赖，即可开始使用</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">// settings.gradle.kts — 添加 Maven 仓库
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://mirrors.tencent.com/repository/maven-tencent/")
+        }
+    }
+}
+
+// build.gradle.kts — 添加依赖
+kotlin {
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation("com.tencent.kuikly.table:kuikly-table:1.0.0-2.1.21")
+            }
+        }
+    }
+}</code></pre>
+  </div>
+</section>
+
+<!-- Platforms -->
+<section class="section section-alt" id="platforms">
+  <h2 class="section-title">平台支持</h2>
+  <p class="section-desc">一次编写，五端运行</p>
+  <div class="platforms">
+    <div class="platform-item">
+      <div class="platform-icon">🤖</div>
+      <span>Android</span>
+    </div>
+    <div class="platform-item">
+      <div class="platform-icon">🍎</div>
+      <span>iOS</span>
+    </div>
+    <div class="platform-item">
+      <div class="platform-icon">💻</div>
+      <span>macOS</span>
+    </div>
+    <div class="platform-item">
+      <div class="platform-icon">🌐</div>
+      <span>JS / H5</span>
+    </div>
+    <div class="platform-item">
+      <div class="platform-icon">📱</div>
+      <span>OHOS</span>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>
+    KuiklyTable — 基于
+    <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a>
+    跨端框架构建 &nbsp;|&nbsp;
+    <a href="https://github.com/Tencent-TDS/KuiklyUI/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+  </p>
+  <p style="margin-top:8px;opacity:0.7;">© Tencent TDS</p>
+</footer>
+
+<script src="script.js" defer></script>
+</body>
+</html>

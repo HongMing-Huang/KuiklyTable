@@ -20,6 +20,17 @@
 | | 行点击/长按 | `rowClick` / `rowLongClick` 事件回调 |
 | 性能优化 | 虚拟化滚动 | 基于 List 组件的按需渲染，轻松应对大数据量 |
 | 自定义渲染 | cellRenderer | 单元格内嵌入文本、图片、按钮、进度条等任意组件 |
+| 企业级功能 | 树形表格 | TreeTable，多层级数据展示 |
+| | 冻结列 | FrozenColumnTable，固定列不随横向滚动 |
+| | 分页 | PaginatedTable，页码导航 |
+| | 搜索过滤 | FilterableTable，关键词搜索 |
+| | 展开折叠 | ExpandableTable，行点击展开详情 |
+| | 滑动操作 | SwipeableTable，行尾操作按钮 |
+| | 内联编辑 | EditableTable，单元格直接编辑 |
+| | 批量操作 | BatchActionTable，选中后批量操作 |
+| | 合并表头 | GroupedHeaderTable，多行表头分组 |
+| | 无限滚动 | InfiniteTable，滚动自动加载 |
+| | 空状态 | TableWithEmptyState，空数据占位视图 |
 
 ## 🚀 快速接入
 
@@ -263,6 +274,46 @@ Table<Student> {
 }
 ```
 
+### 树形表格
+
+使用 `TreeTable` 展示多层级组织架构数据，支持初始展开节点配置：
+
+```kotlin
+data class OrgNode(val name: String, val role: String)
+
+TreeTable<OrgNode> {
+    attr {
+        treeData = listOf(
+            TreeNode(OrgNode("总公司", ""), id = "root", children = listOf(
+                TreeNode(OrgNode("技术部", ""), id = "tech", children = listOf(
+                    TreeNode(OrgNode("前端组", "前端"), id = "fe"),
+                    TreeNode(OrgNode("后端组", "后端"), id = "be")
+                ))
+            ))
+        )
+        columns = listOf(
+            column("名称", flex = 2f) { it.name },
+            column("职责") { it.role }
+        )
+        initialExpandedIds = setOf("root", "tech")
+    }
+}
+```
+
+### 分页表格
+
+使用 `PaginatedTable` 对大量数据进行分页展示，通过 `pageSize` 控制每页条数：
+
+```kotlin
+PaginatedTable<Student> {
+    attr {
+        data = students  // 100 条数据
+        columns = columns
+        pageSize = 20
+    }
+}
+```
+
 ## 📋 API 参考
 
 ### TableColumn 列定义
@@ -350,7 +401,9 @@ Table<Student> {
 
 ## 📱 示例
 
-完整示例见 [`shared/src/commonMain/kotlin/com/tencent/kuikly/table/demo/TableDemoPage.kt`](shared/src/commonMain/kotlin/com/tencent/kuikly/table/demo/TableDemoPage.kt)，包含 9 个演示 Section：
+🌐 [在线交互演示](https://hongming-huang.github.io/KuiklyTable/)
+
+完整示例见 [`shared/src/commonMain/kotlin/com/tencent/kuikly/table/demo/TableDemoPage.kt`](shared/src/commonMain/kotlin/com/tencent/kuikly/table/demo/TableDemoPage.kt)，包含 20 个演示 Section：
 
 1. **基础表格** — 最简单的使用方式
 2. **可排序表格** — 点击表头排序
@@ -361,6 +414,17 @@ Table<Student> {
 7. **横向滚动表格** — 列数较多时横向滚动浏览
 8. **极简主题** — MINIMAL 主题
 9. **大数据量** — 虚拟化滚动性能演示
+10. **树形表格** — 多层级组织架构展示
+11. **冻结列** — 固定列不随横向滚动
+12. **分页表格** — 页码导航大数据分页
+13. **搜索过滤** — 关键词实时搜索
+14. **展开折叠** — 行点击展开详情
+15. **滑动操作** — 行尾操作按钮
+16. **内联编辑** — 单元格直接编辑
+17. **批量操作** — 多选后批量操作
+18. **合并表头** — 多行表头分组
+19. **无限滚动** — 滚动自动加载
+20. **空状态** — 空数据占位视图
 
 ## 🌐 平台支持
 

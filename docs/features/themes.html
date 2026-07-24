@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主题 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>4 种主题</span>
+  </div>
+
+  <h1>4 种内置主题</h1>
+  <p>
+    KuiklyTable 内置 4 种开箱即用的主题风格，通过 <code>theme</code> 属性一行切换，
+    无需手动编写样式。所有颜色、边框、分隔线均可通过 <code>TableAttr</code> 进一步自定义。
+  </p>
+
+  <h2>DEFAULT — 默认主题</h2>
+  <p>仅底部分隔线，简洁大方，适合大部分数据展示场景。</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("成绩", flex = 1f) { it.score.toString() },
+        )
+        data = students
+        theme = TableTheme.DEFAULT  // 可省略，DEFAULT 为默认值
+    }
+}</code></pre>
+  </div>
+
+  <h2>STRIPE — 斑马纹主题</h2>
+  <p>奇偶行交替背景色，提升大数据量下的行可读性。偶数行颜色由 <code>stripeRowBackgroundColor</code> 控制。</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("年龄", flex = 1f) { it.age.toString() },
+            column("成绩", flex = 1f) { it.score.toString() },
+        )
+        data = students
+        theme = TableTheme.STRIPE
+        // 可选：自定义斑马纹偶数行背景色
+        // stripeRowBackgroundColor = Color(0xFFF0F4FF)
+    }
+}</code></pre>
+  </div>
+
+  <h2>BORDERED — 全边框主题</h2>
+  <p>每个单元格都有完整边框，适合数据密集型、财务报表等需要清晰分隔的场景。</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("年龄", flex = 1f, align = TableCellAlign.CENTER) { it.age.toString() },
+            column("成绩", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+            column("年级", flex = 1f) { it.grade },
+        )
+        data = students
+        theme = TableTheme.BORDERED
+        // 可选：自定义边框颜色和宽度
+        // borderColor = Color(0xFFCCCCCC)
+        // borderWidth = 1f
+    }
+}</code></pre>
+  </div>
+
+  <h2>MINIMAL — 极简主题</h2>
+  <p>无边框、无分隔线，极简风格，适合卡片式布局或与其他 UI 组件嵌套使用。</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("成绩", flex = 1f) { it.score.toString() },
+        )
+        data = students
+        theme = TableTheme.MINIMAL
+    }
+}</code></pre>
+  </div>
+
+  <h2>主题对比一览</h2>
+  <p>
+    | 主题 | 分隔线 | 边框 | 适用场景 |<br>
+    |------|--------|------|----------|<br>
+    | <strong>DEFAULT</strong> | ✅ 底部 | ❌ | 通用列表、信息展示 |<br>
+    | <strong>STRIPE</strong> | ✅ 底部 | ❌ | 大数据量、财务报表 |<br>
+    | <strong>BORDERED</strong> | ✅ | ✅ 全边框 | 数据密集型、Excel 风格 |<br>
+    | <strong>MINIMAL</strong> | ❌ | ❌ | 卡片嵌套、极简设计 |
+  </p>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

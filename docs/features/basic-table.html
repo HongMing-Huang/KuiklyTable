@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基础表格 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li>
+      <a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a>
+    </li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a>
+    <span>/</span>
+    <span>基础表格</span>
+  </div>
+
+  <h1>基础表格</h1>
+  <p>
+    基础表格是 KuiklyTable 最核心的入口。你只需定义一个数据类，声明列配置，传入数据列表，
+    即可用极简的 Kotlin DSL 语法渲染出一个功能完整的跨平台表格。
+  </p>
+
+  <h2>最简示例</h2>
+  <p>只需三列文本列，传入 <code>data</code> 即可：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Student(val name: String, val age: Int, val score: Int)
+
+val students = listOf(
+    Student("张三", 18, 92),
+    Student("李四", 17, 85),
+    Student("王五", 16, 78),
+)
+
+Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("年龄", flex = 1f, align = TableCellAlign.CENTER) { it.age.toString() },
+            column("成绩", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+        )
+        data = students
+    }
+}</code></pre>
+  </div>
+
+  <h2>指定主题</h2>
+  <p>通过 <code>theme</code> 属性切换表格风格，默认为 <code>TableTheme.DEFAULT</code>（仅底部分隔线）：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("分数", flex = 1f, align = TableCellAlign.RIGHT) { it.score.toString() },
+        )
+        data = students
+        theme = TableTheme.BORDERED  // 全边框主题
+    }
+}</code></pre>
+  </div>
+
+  <h2>行点击事件</h2>
+  <p>通过 <code>event {}</code> DSL 块注册行点击回调：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">Table&lt;Student&gt; {
+    attr {
+        columns = listOf(
+            column("姓名", flex = 2f) { it.name },
+            column("成绩", flex = 1f) { it.score.toString() },
+        )
+        data = students
+    }
+    event {
+        rowClick { item, index -&gt;
+            println("点击了第 ${index + 1} 行：${item.name}，成绩 ${item.score}")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>核心概念</h2>
+  <p>
+    <strong>column()</strong> — 创建纯文本列，传入标题、弹性比例 <code>flex</code>、对齐方式 <code>align</code>，
+    以及一个将数据项转换为字符串的 lambda。<br>
+    <strong>Table&lt;T&gt;</strong> — 泛型 DSL 入口，<code>attr {}</code> 配置属性，<code>event {}</code> 注册事件。<br>
+    <strong>TableTheme</strong> — 内置 4 种主题，一行切换。
+  </p>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

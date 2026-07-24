@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>冻结列 — KuiklyTable</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="../index.html">KuiklyTable</a>
+  <ul class="navbar-links">
+    <li><a href="../index.html#features">功能</a></li>
+    <li><a href="../index.html#quickstart">快速开始</a></li>
+    <li><a href="../index.html#platforms">平台</a></li>
+    <li><a class="navbar-github" href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">⭐ GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="feature-page">
+  <div class="breadcrumb">
+    <a href="../index.html">首页</a><span>/</span><span>冻结列</span>
+  </div>
+
+  <h1>冻结列</h1>
+  <p>
+    当表格列数较多需要横向滚动时，冻结列功能可以将关键列（如名称、ID）固定在左侧不随滚动移动，
+    方便用户始终能看到最重要的信息。<code>FrozenColumnTable</code> DSL 让冻结列配置简单直观。
+  </p>
+
+  <h2>基础冻结列</h2>
+  <p>使用 <code>FrozenColumnTable</code> 包裹，设置 <code>frozenCols</code> 指定冻结前 N 列：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">data class Employee(
+    val name: String,
+    val department: String,
+    val position: String,
+    val salary: Double,
+    val bonus: Double,
+    val total: Double,
+)
+
+val employees = listOf(
+    Employee("张三", "技术部", "高级工程师", 35000.0, 8000.0, 43000.0),
+    Employee("李四", "市场部", "市场经理", 28000.0, 6000.0, 34000.0),
+    Employee("王五", "财务部", "财务主管", 30000.0, 7000.0, 37000.0),
+)
+
+FrozenColumnTable(frozenCols = 1) {
+    attr {
+        width(MATCH_PARENT)
+        height(300f)
+        columns = listOf(
+            column("姓名", minWidth = 100f) { it.name },           // 冻结列
+            column("部门", minWidth = 120f) { it.department },
+            column("职位", minWidth = 120f) { it.position },
+            column("薪资", minWidth = 100f, align = TableCellAlign.RIGHT) { "¥${it.salary.toInt()}" },
+            column("奖金", minWidth = 100f, align = TableCellAlign.RIGHT) { "¥${it.bonus.toInt()}" },
+            column("合计", minWidth = 100f, align = TableCellAlign.RIGHT) { "¥${it.total.toInt()}" },
+        )
+        data = employees
+        theme = TableTheme.BORDERED
+    }
+}</code></pre>
+  </div>
+
+  <h2>冻结多列</h2>
+  <p>将 <code>frozenCols</code> 设为更大值，可以同时冻结多列：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">// 冻结前两列：姓名 + 部门
+FrozenColumnTable(frozenCols = 2) {
+    attr {
+        width(MATCH_PARENT)
+        height(360f)
+        columns = listOf(
+            column("姓名", minWidth = 90f) { it.name },         // 冻结
+            column("部门", minWidth = 100f) { it.department },  // 冻结
+            column("职位", minWidth = 120f) { it.position },
+            column("入职日期", minWidth = 110f) { it.hireDate },
+            column("薪资", minWidth = 100f) { "¥${it.salary.toInt()}" },
+            column("绩效", minWidth = 80f) { it.performance },
+            column("备注", minWidth = 160f) { it.note },
+        )
+        data = employees
+        theme = TableTheme.STRIPE
+    }
+}</code></pre>
+  </div>
+
+  <h2>配合行点击事件</h2>
+  <p>冻结列表格同样支持所有标准事件回调：</p>
+  <div class="code-block-wrapper">
+    <pre><code class="language-kotlin">FrozenColumnTable(frozenCols = 1) {
+    attr {
+        columns = listOf(
+            column("姓名", minWidth = 100f) { it.name },
+            column("薪资", minWidth = 100f) { "¥${it.salary.toInt()}" },
+            column("奖金", minWidth = 100f) { "¥${it.bonus.toInt()}" },
+        )
+        data = employees
+        selectable = true
+    }
+    event {
+        rowClick { item, index -&gt;
+            println("点击：${item.name}，薪资 ¥${item.salary.toInt()}")
+        }
+        selectionChanged { indices -&gt;
+            println("已选中 ${indices.size} 行")
+        }
+    }
+}</code></pre>
+  </div>
+
+  <h2>使用场景</h2>
+  <p>
+    <strong>员工花名册</strong>：冻结姓名列，横向滚动查看薪资、绩效等信息。<br>
+    <strong>财务报表</strong>：冻结科目列，横向对比各月数据。<br>
+    <strong>项目进度</strong>：冻结项目名称列，横向查看各阶段完成状态。
+  </p>
+
+  <a class="back-link" href="../index.html#features">← 返回功能列表</a>
+</div>
+
+<footer class="footer">
+  <p>KuiklyTable — 基于 <a href="https://github.com/Tencent-TDS/KuiklyUI" target="_blank" rel="noopener">KuiklyUI</a> 跨端框架构建</p>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>
