@@ -257,40 +257,52 @@ class BatchActionTableView<T> : ComposeView<BatchActionTableAttr<T>, BatchAction
                     }
 
                     // 选中数量提示
-                    Text {
+                    View {
                         attr {
-                            text("已选 ${ctx.selectedIndices.size} 项")
-                            color(ctx.attr.actionBarTextColor)
-                            fontSize(ctx.attr.actionBarFontSize)
                             padding(8f)
+                        }
+                        Text {
+                            attr {
+                                text("已选 ${ctx.selectedIndices.size} 项")
+                                color(ctx.attr.actionBarTextColor)
+                                fontSize(ctx.attr.actionBarFontSize)
+                            }
                         }
                     }
 
                     // 批量操作按钮
                     for (action in ctx.attr.batchActions) {
-                        Text {
+                        View {
                             attr {
-                                text(action.label)
-                                color(ctx.attr.actionButtonTextColor)
-                                fontSize(ctx.attr.actionBarFontSize)
                                 padding(8f)
                             }
                             event {
                                 click { ctx.executeAction(action) }
                             }
+                            Text {
+                                attr {
+                                    text(action.label)
+                                    color(ctx.attr.actionButtonTextColor)
+                                    fontSize(ctx.attr.actionBarFontSize)
+                                }
+                            }
                         }
                     }
 
                     // 取消选择按钮
-                    Text {
+                    View {
                         attr {
-                            text("取消")
-                            color(ctx.attr.cancelButtonTextColor)
-                            fontSize(ctx.attr.actionBarFontSize)
                             padding(8f)
                         }
                         event {
                             click { ctx.clearSelection() }
+                        }
+                        Text {
+                            attr {
+                                text("取消")
+                                color(ctx.attr.cancelButtonTextColor)
+                                fontSize(ctx.attr.actionBarFontSize)
+                            }
                         }
                     }
                 }

@@ -86,6 +86,9 @@ class SwipeableTableView<T> : ComposeView<SwipeableTableAttr<T>, ComposeEvent>()
                             minWidth = ctx.attr.swipeActions.size * ctx.attr.actionButtonWidth,
                             align = TableCellAlign.CENTER
                         ) { item ->
+                            // 注意：indexOf 为 O(n) 查找，且当数据列表中存在重复元素时结果可能不正确。
+                            // 这是 columnRenderer 闭包无法直接获取行索引的框架限制。
+                            // 建议数据项实现 equals() 以保证正确性。
                             val rowIndex = ctx.attr.data.indexOf(item)
                             View {
                                 attr {

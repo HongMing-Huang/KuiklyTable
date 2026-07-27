@@ -33,7 +33,12 @@ import com.tencent.kuikly.core.views.View
 enum class EditTrigger {
     /** 单击触发编辑 */
     CLICK,
-    /** 双击触发编辑 */
+    /**
+     * 双击触发编辑。
+     *
+     * 注意：当前表格 rowClick 事件仅提供单击回调，使用 DOUBLE_CLICK 需要外部自行实现
+     * 双击检测逻辑（例如通过计时器判断两次单击间隔）。若无双击检测，此模式将永远无法触发编辑。
+     */
     DOUBLE_CLICK,
 }
 
@@ -253,8 +258,8 @@ class EditableTableAttr<T> : ComposeAttr() {
     /** 可编辑的列 key 集合 */
     var editableColumns: Set<String> = emptySet()
 
-    /** 编辑触发方式，默认双击 */
-    var editTrigger: EditTrigger = EditTrigger.DOUBLE_CLICK
+    /** 编辑触发方式，默认单击（[EditTrigger.CLICK]） */
+    var editTrigger: EditTrigger = EditTrigger.CLICK
 
     /** 单元格文字颜色 */
     var cellTextColor: Color = Color(0xFF333333)

@@ -212,14 +212,28 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
                         columns = ctx.attr.columns
                         data = ctx.allData
                     }
-                    // 通过行点击事件估算滚动位置，自动触发加载
+                    ctx.attr.tableInit?.invoke(this)
+                }
+            }
+
+            // “加载更多”按钮（hasMore=true 且未在加载中时显示）
+            vif({ ctx.attr.hasMore && !ctx.loading }) {
+                View {
+                    attr {
+                        height(48f)
+                        justifyContentCenter()
+                        alignItemsCenter()
+                    }
                     event {
-                        rowClick { _, clickedIndex ->
-                            val totalItems = ctx.allData.size
-                            ctx.checkAndLoadMore(clickedIndex, totalItems)
+                        click { ctx.triggerLoadMore() }
+                    }
+                    Text {
+                        attr {
+                            text(ctx.attr.loadMoreButtonText)
+                            color(Color(0xFF4A90D9))
+                            fontSize(14f)
                         }
                     }
-                    ctx.attr.tableInit?.invoke(this)
                 }
             }
 
@@ -302,6 +316,9 @@ class InfiniteTableAttr<T> : ComposeAttr() {
 
     /** 无更多数据提示文案，默认 "没有更多了" */
     var noMoreText: String = "没有更多了"
+
+    /** “加载更多”按钮文案，默认 "加载更多" */
+    var loadMoreButtonText: String = "加载更多"
 
     /** 外部控制加载状态，默认 false */
     var isLoading: Boolean = false

@@ -21,6 +21,7 @@ import com.tencent.kuikly.core.base.ComposeEvent
 import com.tencent.kuikly.core.base.ComposeView
 import com.tencent.kuikly.core.base.ViewBuilder
 import com.tencent.kuikly.core.base.ViewContainer
+import com.tencent.kuikly.core.directives.vbind
 import com.tencent.kuikly.core.reactive.handler.observable
 import com.tencent.kuikly.core.views.Text
 import com.tencent.kuikly.core.views.View
@@ -331,8 +332,9 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
                 }
             }
 
-            // 分页导航栏
-            View {
+            // 分页导航栏（使用 vbind 监听分页状态变化）
+            vbind({ ctx.currentPage.toLong() * 10000 + ctx.currentPageSize.toLong() }) {
+                View {
                 attr {
                     height(ctx.attr.paginationBarHeight)
                     flexDirectionRow()
@@ -342,15 +344,19 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
                 }
 
                 // 上一页按钮
-                Text {
+                View {
                     attr {
-                        text("‹ 上一页")
-                        color(ctx.attr.paginationBarTextColor)
-                        fontSize(ctx.attr.paginationBarFontSize)
                         padding(8f)
                     }
                     event {
                         click { ctx.prevPage() }
+                    }
+                    Text {
+                        attr {
+                            text("‹ 上一页")
+                            color(ctx.attr.paginationBarTextColor)
+                            fontSize(ctx.attr.paginationBarFontSize)
+                        }
                     }
                 }
 
@@ -359,12 +365,16 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
                 for (page in pages) {
                     if (page == -1) {
                         // 省略号
-                        Text {
+                        View {
                             attr {
-                                text("...")
-                                color(ctx.attr.paginationBarTextColor)
-                                fontSize(ctx.attr.paginationBarFontSize)
                                 padding(0f, 4f, 0f, 4f)
+                            }
+                            Text {
+                                attr {
+                                    text("...")
+                                    color(ctx.attr.paginationBarTextColor)
+                                    fontSize(ctx.attr.paginationBarFontSize)
+                                }
                             }
                         }
                     } else {
@@ -397,27 +407,36 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
                 }
 
                 // 下一页按钮
-                Text {
+                View {
                     attr {
-                        text("下一页 ›")
-                        color(ctx.attr.paginationBarTextColor)
-                        fontSize(ctx.attr.paginationBarFontSize)
                         padding(8f)
                     }
                     event {
                         click { ctx.nextPage() }
                     }
+                    Text {
+                        attr {
+                            text("下一页 ›")
+                            color(ctx.attr.paginationBarTextColor)
+                            fontSize(ctx.attr.paginationBarFontSize)
+                        }
+                    }
                 }
 
                 // 总条数
-                Text {
+                View {
                     attr {
-                        text("共 ${ctx.attr.data.size} 条")
-                        color(ctx.attr.paginationBarTextColor)
-                        fontSize(ctx.attr.paginationBarFontSize)
                         padding(8f)
                     }
+                    Text {
+                        attr {
+                            text("共 ${ctx.attr.data.size} 条")
+                            color(ctx.attr.paginationBarTextColor)
+                            fontSize(ctx.attr.paginationBarFontSize)
+                        }
+                    }
                 }
+            }
             }
         }
     }

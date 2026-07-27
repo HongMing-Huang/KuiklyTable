@@ -120,6 +120,36 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
     // region 树操作
 
     /**
+     * 计算节点的唯一 ID。
+     *
+     * 优先使用 [TreeNode.id]，为空时尝试 [TreeTableAttr.nodeKeyExtractor]，
+     * 均为空时通过路径索引方式在树中查找并生成路径 ID。
+     *
+     * @param node 目标树节点
+     * @return 节点唯一 ID
+     */
+    private fun resolveNodeId(node: TreeNode<T>): String {
+        if (node.id.isNotEmpty()) return node.id
+        attr.nodeKeyExtractor?.invoke(node.data)?.let { return it }
+        // 回退：在树中查找节点的路径索引
+        return findNodePath(attr.treeData, node, "") ?: ""
+    }
+
+    /**
+     * 在树中递归查找目标节点的路径 ID。
+     */
+    private fun findNodePath(nodes: List<TreeNode<T>>, target: TreeNode<T>, parentPath: String): String? {
+        for ((childIndex, node) in nodes.withIndex()) {
+            val path = "$parentPath/$childIndex"
+            if (node === target) return path
+            if (!node.children.isNullOrEmpty()) {
+                findNodePath(node.children!!, target, path)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    /**
      * 切换指定节点的展开/折叠状态。
      *
      * 更新 [expandedIds] 后自动重建展平数据，并触发
@@ -128,7 +158,7 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
      * @param node 要切换的树节点
      */
     fun toggleNode(node: TreeNode<T>) {
-        val nodeId = node.id.ifEmpty { attr.nodeKeyExtractor?.invoke(node.data) ?: "" }
+        val nodeId = resolveNodeId(node)
         expandedIds = if (nodeId in expandedIds) {
             expandedIds - nodeId
         } else {
@@ -144,7 +174,7 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
      * @param node 要展开的树节点
      */
     fun expandNode(node: TreeNode<T>) {
-        val nodeId = node.id.ifEmpty { attr.nodeKeyExtractor?.invoke(node.data) ?: "" }
+        val nodeId = resolveNodeId(node)
         if (nodeId !in expandedIds) {
             expandedIds = expandedIds + nodeId
             rebuildFlatData()
@@ -158,7 +188,7 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
      * @param node 要折叠的树节点
      */
     fun collapseNode(node: TreeNode<T>) {
-        val nodeId = node.id.ifEmpty { attr.nodeKeyExtractor?.invoke(node.data) ?: "" }
+        val nodeId = resolveNodeId(node)
         if (nodeId in expandedIds) {
             expandedIds = expandedIds - nodeId
             rebuildFlatData()
@@ -170,20 +200,24 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
      * 递归展平树结构为线性列表。
      *
      * 仅展开 [expandedIds] 中存在的节点的子树，叶子节点始终包含。
+     * 对于无 ID 节点，使用路径索引方式生成唯一 key（如 "0/1/2"），避免空 ID 碰撞。
      *
      * @param nodes 当前层级的树节点列表
      * @param depth 当前深度，根节点层为 0
+     * @param parentPath 父节点路径，用于生成无 ID 节点的唯一 key
      * @return 展平后的 [FlatTreeNode] 列表
      */
-    private fun flattenTree(nodes: List<TreeNode<T>>, depth: Int = 0): List<FlatTreeNode<T>> {
+    private fun flattenTree(nodes: List<TreeNode<T>>, depth: Int = 0, parentPath: String = ""): List<FlatTreeNode<T>> {
         val result = mutableListOf<FlatTreeNode<T>>()
-        for (node in nodes) {
+        for ((childIndex, node) in nodes.withIndex()) {
             val hasChildren = !node.children.isNullOrEmpty()
-            val nodeId = node.id.ifEmpty { attr.nodeKeyExtractor?.invoke(node.data) ?: "" }
+            val nodeId = node.id.ifEmpty {
+                attr.nodeKeyExtractor?.invoke(node.data) ?: "$parentPath/$childIndex"
+            }
             val isExpanded = nodeId in expandedIds
             result.add(FlatTreeNode(node, depth, hasChildren, isExpanded))
             if (hasChildren && isExpanded) {
-                result.addAll(flattenTree(node.children!!, depth + 1))
+                result.addAll(flattenTree(node.children!!, depth + 1, nodeId))
             }
         }
         return result
@@ -457,9 +491,6 @@ class TreeTableAttr<T> : ComposeAttr() {
 
     /** 初始展开的节点 ID 集合 */
     var initialExpandedIds: Set<String> = emptySet()
-
-    /** 额外表格配置回调（供高级定制使用） */
-    var tableInit: (TableView<FlatTreeNode<T>>.() -> Unit)? = null
 
     // === 布局与样式配置 ===
 

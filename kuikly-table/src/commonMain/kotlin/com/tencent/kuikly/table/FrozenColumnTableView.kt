@@ -204,12 +204,13 @@ class FrozenColumnTableEvent<T> : ComposeEvent() {
 /**
  * 冻结列表格组件，支持将指定列固定在左侧，主列区域可横向滚动。
  *
- * 通过 ComposeView 三件套封装，将表格拆分为两个并排区域：
+ * 通过 ComposeView 三件套封装，将表格拆分为冻结列区域和主列区域：
  * - **冻结列区域**（左侧）：固定宽度，不随横向滚动移动
  * - **主列区域**（右侧）：可横向滚动，显示剩余列
  *
- * 两个区域共享相同的固定行高 [FrozenColumnTableAttr.rowHeight]，确保行始终水平对齐。
- * 每个区域各自使用独立的 [List] 组件实现纵向虚拟化滚动。
+ * 使用单一 [List] 组件渲染所有数据行，每行内部用 `flexDirection("row")` 排列
+ * 冻结列和主列区域，确保纵向滚动完全同步。
+ * 使用固定 [FrozenColumnTableAttr.rowHeight] 确保行高一致、水平对齐。
  *
  * 使用示例：
  * ```kotlin
@@ -233,10 +234,6 @@ class FrozenColumnTableEvent<T> : ComposeEvent() {
  *     }
  * }
  * ```
- *
- * **注意**：由于冻结列和主列使用独立的纵向滚动容器，大数据量（> 500 行）时
- * 纵向滚动可能不完全同步。对于大数据量场景，建议使用普通 [TableView] 配合
- * `horizontalScroll = true`。
  *
  * @param T 数据行类型
  *
@@ -329,14 +326,17 @@ class FrozenColumnTableView<T> : ComposeView<FrozenColumnTableAttr<T>, FrozenCol
      * │   ├── 冻结列表头 View(width=frozenWidth) → TableHeader(frozenColumns)
      * │   ├── 分隔线 View(width=frozenSeparatorWidth)
      * │   └── 主列表头 View(flex=1) → Scroller(horizontal) → TableHeader(scrollColumns)
-     * └── [数据行区域 flexDirectionRow]
-     *     ├── 冻结列数据 View(width=frozenWidth) → List → vbind → TableRow(frozenColumns)
-     *     ├── 分隔线 View(width=frozenSeparatorWidth)
-     *     └── 主列数据 View(flex=1) → Scroller(horizontal) → List → vbind → TableRow(scrollColumns)
+     * └── [单一 List - 确保纵向滚动同步]
+     *     ├── [非吸顶表头] (vif !stickyHeader)
+     *     └── vbind(dataVersion) → 每行:
+     *         └── View(flexDirectionRow)
+     *             ├── 冻结列 View(width=frozenWidth) → TableRow(frozenColumns)
+     *             ├── 分隔线
+     *             └── 主列 View(flex=1) → Scroller(horizontal) → TableRow(scrollColumns)
      * ```
      *
-     * 冻结列区域和主列区域各自使用独立的 [List] 实现纵向虚拟化。
-     * 使用固定 [FrozenColumnTableAttr.rowHeight] 确保两侧行高一致、水平对齐。
+     * 使用单一 [List] 渲染所有行，每行内部用 flexDirectionRow 排列冻结列和主列区域，
+     * 确保纵向滚动完全同步。主列区域使用横向 Scroller 支持横向滚动。
      */
     override fun body(): ViewBuilder {
         val ctx = this
@@ -428,26 +428,25 @@ class FrozenColumnTableView<T> : ComposeView<FrozenColumnTableAttr<T>, FrozenCol
                 }
             }
 
-            // ===== 数据行区域 =====
-            View {
+            // ===== 数据行区域 - 单一 List 确保纵向滚动同步 =====
+            List {
                 attr {
-                    flexDirectionRow()
                     flex(1f)
                 }
 
-                // ----- 冻结列数据区域 -----
-                View {
-                    attr {
-                        width(frozenWidth)
-                        flex(0f)
-                    }
-                    List {
+                // 非吸顶表头（随列表滚动）
+                vif({ ctx.attr.showHeader && !ctx.attr.stickyHeader }) {
+                    View {
                         attr {
-                            flex(1f)
+                            flexDirectionRow()
+                            height(ctx.attr.headerHeight)
                         }
-
-                        // 非吸顶表头（随列表滚动）
-                        vif({ ctx.attr.showHeader && !ctx.attr.stickyHeader }) {
+                        // 冻结列表头
+                        View {
+                            attr {
+                                width(frozenWidth)
+                                flex(0f)
+                            }
                             TableHeader {
                                 attr {
                                     columns = frozenColumns
@@ -464,10 +463,63 @@ class FrozenColumnTableView<T> : ComposeView<FrozenColumnTableAttr<T>, FrozenCol
                                 }
                             }
                         }
+                        // 分隔线
+                        View {
+                            attr {
+                                width(ctx.attr.frozenSeparatorWidth)
+                                flex(0f)
+                                backgroundColor(ctx.attr.frozenSeparatorColor)
+                            }
+                        }
+                        // 主列表头
+                        View {
+                            attr { flex(1f) }
+                            Scroller {
+                                attr {
+                                    flexDirectionRow()
+                                    flex(1f)
+                                }
+                                View {
+                                    attr {
+                                        flexDirectionRow()
+                                        flex(1f)
+                                    }
+                                    TableHeader {
+                                        attr {
+                                            columns = scrollColumns
+                                            headerHeight = ctx.attr.headerHeight
+                                            headerBackgroundColor = ctx.attr.headerBackgroundColor
+                                            headerTextColor = ctx.attr.headerTextColor
+                                            headerFontSize = ctx.attr.headerFontSize
+                                            cellPadding = ctx.attr.cellPadding
+                                            theme = ctx.attr.theme
+                                            borderColor = ctx.attr.borderColor
+                                            borderWidth = ctx.attr.borderWidth
+                                            separatorColor = ctx.attr.separatorColor
+                                            separatorHeight = ctx.attr.separatorHeight
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
-                        // 冻结列数据行
-                        vbind({ ctx.dataVersion.toLong() }) {
-                            for ((index, item) in ctx.attr.data.withIndex()) {
+                // 数据行 - 每行包含冻结列 + 主列，确保纵向滚动同步
+                vbind({ ctx.dataVersion.toLong() }) {
+                    for ((index, item) in ctx.attr.data.withIndex()) {
+                        View {
+                            attr {
+                                height(ctx.attr.rowHeight)
+                                flexDirectionRow()
+                            }
+
+                            // 冻结列区域
+                            View {
+                                attr {
+                                    width(frozenWidth)
+                                    flex(0f)
+                                }
                                 TableRow<T> {
                                     attr {
                                         this.item = item
@@ -493,61 +545,31 @@ class FrozenColumnTableView<T> : ComposeView<FrozenColumnTableAttr<T>, FrozenCol
                                     }
                                 }
                             }
-                        }
-                    }
-                }
 
-                // ----- 冻结列与主列之间的分隔线 -----
-                View {
-                    attr {
-                        width(ctx.attr.frozenSeparatorWidth)
-                        flex(0f)
-                        backgroundColor(ctx.attr.frozenSeparatorColor)
-                    }
-                }
-
-                // ----- 主列数据区域（可横向滚动）-----
-                View {
-                    attr {
-                        flex(1f)
-                    }
-                    Scroller {
-                        attr {
-                            flexDirectionRow()
-                            flex(1f)
-                        }
-                        View {
-                            attr {
-                                flexDirectionColumn()
-                                flex(1f)
+                            // 冻结列与主列之间的分隔线
+                            View {
+                                attr {
+                                    width(ctx.attr.frozenSeparatorWidth)
+                                    flex(0f)
+                                    backgroundColor(ctx.attr.frozenSeparatorColor)
+                                }
                             }
-                            List {
+
+                            // 主列区域（横向可滚动）
+                            View {
                                 attr {
                                     flex(1f)
                                 }
-
-                                // 非吸顶表头（随列表滚动）
-                                vif({ ctx.attr.showHeader && !ctx.attr.stickyHeader }) {
-                                    TableHeader {
-                                        attr {
-                                            columns = scrollColumns
-                                            headerHeight = ctx.attr.headerHeight
-                                            headerBackgroundColor = ctx.attr.headerBackgroundColor
-                                            headerTextColor = ctx.attr.headerTextColor
-                                            headerFontSize = ctx.attr.headerFontSize
-                                            cellPadding = ctx.attr.cellPadding
-                                            theme = ctx.attr.theme
-                                            borderColor = ctx.attr.borderColor
-                                            borderWidth = ctx.attr.borderWidth
-                                            separatorColor = ctx.attr.separatorColor
-                                            separatorHeight = ctx.attr.separatorHeight
-                                        }
+                                Scroller {
+                                    attr {
+                                        flexDirectionRow()
+                                        flex(1f)
                                     }
-                                }
-
-                                // 主列数据行
-                                vbind({ ctx.dataVersion.toLong() }) {
-                                    for ((index, item) in ctx.attr.data.withIndex()) {
+                                    View {
+                                        attr {
+                                            flexDirectionRow()
+                                            flex(1f)
+                                        }
                                         TableRow<T> {
                                             attr {
                                                 this.item = item

@@ -206,6 +206,7 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
         }
         selectedIndices = newSet
         event.onSelectionChanged?.invoke(selectedIndices)
+        dataVersion++
     }
 
     /**

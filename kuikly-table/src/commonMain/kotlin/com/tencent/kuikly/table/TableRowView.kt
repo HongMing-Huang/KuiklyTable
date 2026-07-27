@@ -164,8 +164,7 @@ class TableRowView<T> : ComposeView<TableRowAttr<T>, TableRowEvent<T>>() {
  */
 class TableRowAttr<T> : ComposeAttr() {
     /** 当前行数据（必须在使用前赋值）*/
-    @Suppress("UNCHECKED_CAST")
-    var item: T = null as T
+    lateinit var item: T
 
     /** 行索引 */
     var index: Int = 0

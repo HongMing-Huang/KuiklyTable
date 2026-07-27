@@ -317,9 +317,6 @@ class ExpandableTableAttr<T> : ComposeAttr() {
 
     /** 展开行高度，0 表示自动高度，默认 0f */
     var expandRowHeight: Float = 0f
-
-    /** 额外表格配置回调 */
-    var tableInit: (TableView<T>.() -> Unit)? = null
 }
 
 /**
