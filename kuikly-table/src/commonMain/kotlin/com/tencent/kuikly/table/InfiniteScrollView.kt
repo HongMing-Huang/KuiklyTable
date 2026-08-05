@@ -79,6 +79,13 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
     /** 已加载的数据总量，用于跟踪加载进度 */
     var totalLoadedItems: Int by observable(0)
 
+    /**
+     * 上次触发加载更多时的数据量，用于去重。
+     *
+     * 当加载完成后数据量未增长（如加载失败返回空）时，避免重复触发加载回调。
+     */
+    private var lastTriggeredRowCount: Int? = null
+
     // endregion
 
     // region 生命周期
@@ -133,6 +140,7 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
      * 当满足以下条件时触发 [InfiniteTableEvent.onLoadMore] 回调：
      * - 当前未在加载中（[loading] == false）
      * - 还有更多数据（[InfiniteTableAttr.hasMore] == true）
+     * - 距上次触发后数据量有增长（去重，避免加载失败时重复触发）
      * - 当前可见行索引距末尾不足 [InfiniteTableAttr.loadThreshold] 行
      *
      * 同时提供无参重载版本 [checkAndLoadMore]，基于内部数据量自动判断。
@@ -141,9 +149,8 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
      * @param totalItems 总数据条数
      */
     fun checkAndLoadMore(visibleIndex: Int, totalItems: Int) {
-        if (!loading && attr.hasMore && totalItems - visibleIndex <= attr.loadThreshold) {
-            loading = true
-            event.onLoadMore?.invoke()
+        if (canTriggerLoadMore() && totalItems - visibleIndex <= attr.loadThreshold) {
+            doTriggerLoadMore()
         }
     }
 
@@ -154,9 +161,8 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
      * 适用于外部无法获取可见索引的场景。
      */
     fun checkAndLoadMore() {
-        if (!loading && attr.hasMore && allData.size <= attr.loadThreshold * 2) {
-            loading = true
-            event.onLoadMore?.invoke()
+        if (canTriggerLoadMore() && allData.size <= attr.loadThreshold * 2) {
+            doTriggerLoadMore()
         }
     }
 
@@ -167,10 +173,28 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
      * 适用于外部主动调用场景。
      */
     fun triggerLoadMore() {
-        if (!loading && attr.hasMore) {
-            loading = true
-            event.onLoadMore?.invoke()
+        if (canTriggerLoadMore()) {
+            doTriggerLoadMore()
         }
+    }
+
+    // endregion
+
+    // region 加载去重
+
+    /**
+     * 是否可触发加载更多：未在加载中、还有更多数据，且数据量较上次触发有增长。
+     */
+    private fun canTriggerLoadMore(): Boolean =
+        !loading && attr.hasMore && lastTriggeredRowCount != allData.size
+
+    /**
+     * 记录触发时的数据量并触发 [InfiniteTableEvent.onLoadMore] 回调。
+     */
+    private fun doTriggerLoadMore() {
+        lastTriggeredRowCount = allData.size
+        loading = true
+        event.onLoadMore?.invoke()
     }
 
     // endregion

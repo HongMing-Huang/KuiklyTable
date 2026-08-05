@@ -24,6 +24,7 @@ import com.tencent.kuikly.core.base.ViewContainer
 import com.tencent.kuikly.core.reactive.handler.observable
 import com.tencent.kuikly.core.views.Input
 import com.tencent.kuikly.core.views.View
+import com.tencent.kuikly.table.pipeline.FilterPipeline
 
 /**
  * 搜索过滤表格属性配置。

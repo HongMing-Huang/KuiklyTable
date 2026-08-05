@@ -24,6 +24,7 @@ import com.tencent.kuikly.core.reactive.handler.observable
 import com.tencent.kuikly.core.views.List
 import com.tencent.kuikly.core.views.Scroller
 import com.tencent.kuikly.core.views.View
+import com.tencent.kuikly.table.pipeline.TableSortPipeline
 
 /**
  * 表格主组件，支持排序、行选择、多主题和虚拟化滚动。
@@ -77,8 +78,8 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
     /** 当前排序状态，null 表示无排序 */
     var sortState: SortState? by observable(null)
 
-    /** 选中行索引集合 */
-    var selectedIndices: Set<Int> by observable(emptySet())
+    /** 选中行标识集合：有 [TableAttr.rowKey] 时存数据项标识，否则存行索引 */
+    var selectedKeys: Set<Any> by observable(emptySet())
 
     // endregion
 
@@ -135,33 +136,11 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
     /**
      * 根据当前 [sortState] 对 [TableAttr.data] 进行排序，更新缓存。
      *
-     * 优先使用排序列的 [TableColumn.comparator] 进行数值排序，
-     * 若无 comparator 则回退到 [TableColumn.textExtractor] 的字符串排序。
+     * 排序算法委托给 [TableSortPipeline]（纯逻辑，可单元测试）。
      */
     private fun rebuildSortedData() {
-        val data = attr.data
-        sortedDataCache = if (sortState != null) {
-            val state = sortState!!
-            val col = attr.columns.firstOrNull { it.key == state.columnKey }
-            when {
-                col?.comparator != null -> {
-                    val cmp = col.comparator!!
-                    if (state.ascending) data.sortedWith(cmp) else data.sortedWith(cmp).reversed()
-                }
-                col?.textExtractor != null -> {
-                    val extractor = col.textExtractor
-                    if (state.ascending) {
-                        data.sortedBy { extractor.invoke(it) }
-                    } else {
-                        data.sortedByDescending { extractor.invoke(it) }
-                    }
-                }
-                else -> data
-            }
-        } else {
-            data
-        }
-        lastDataHashCode = data.hashCode()
+        sortedDataCache = TableSortPipeline.sort(attr.data, sortState, attr.columns)
+        lastDataHashCode = attr.data.hashCode()
         dataVersion++
     }
 
@@ -191,6 +170,40 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
     // region 选择逻辑
 
     /**
+     * 数据项稳定标识。
+     *
+     * 配置了 [TableAttr.rowKey] 时返回数据项标识，否则回退为行索引。
+     *
+     * @param item 数据项
+     * @param index 行索引
+     * @return 稳定标识
+     */
+    fun keyOf(item: T, index: Int): Any = attr.rowKey?.invoke(item) ?: index
+
+    /**
+     * 判断当前排序数据下该行是否被选中。
+     *
+     * 基于 [keyOf] 比较，排序变化时选中状态跟随数据项而非位置。
+     *
+     * @param item 数据项
+     * @param index 行索引
+     * @return 是否选中
+     */
+    fun isRowSelected(item: T, index: Int): Boolean = keyOf(item, index) in selectedKeys
+
+    /**
+     * 当前选中行索引集合（按排序后位置推导）。
+     *
+     * 事件回调使用，便于外部按索引访问选中行。
+     *
+     * @return 选中行索引集合
+     */
+    fun selectedIndices(): Set<Int> =
+        getSortedData().mapIndexedNotNull { i, item ->
+            if (keyOf(item, i) in selectedKeys) i else null
+        }.toSet()
+
+    /**
      * 切换指定行的选中状态。
      *
      * 切换后自动触发 [TableEvent.onSelectionChanged] 回调。
@@ -198,14 +211,9 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
      * @param index 行索引
      */
     fun toggleSelection(index: Int) {
-        val newSet = selectedIndices.toMutableSet()
-        if (newSet.contains(index)) {
-            newSet.remove(index)
-        } else {
-            newSet.add(index)
-        }
-        selectedIndices = newSet
-        event.onSelectionChanged?.invoke(selectedIndices)
+        val key = keyOf(getSortedData()[index], index)
+        selectedKeys = if (key in selectedKeys) selectedKeys - key else selectedKeys + key
+        event.onSelectionChanged?.invoke(selectedIndices())
         dataVersion++
     }
 
@@ -371,7 +379,7 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
                                             rowBackgroundColor = ctx.attr.rowBackgroundColor
                                             stripeRowBackgroundColor = ctx.attr.stripeRowBackgroundColor
                                             selectedColor = ctx.attr.selectedColor
-                                            isSelected = ctx.selectedIndices.contains(index)
+                                            isSelected = ctx.isRowSelected(item, index)
                                             theme = ctx.attr.theme
                                             separatorColor = ctx.attr.separatorColor
                                             separatorHeight = ctx.attr.separatorHeight
@@ -438,7 +446,7 @@ class TableView<T> : ComposeView<TableAttr<T>, TableEvent<T>>() {
                                     rowBackgroundColor = ctx.attr.rowBackgroundColor
                                     stripeRowBackgroundColor = ctx.attr.stripeRowBackgroundColor
                                     selectedColor = ctx.attr.selectedColor
-                                    isSelected = ctx.selectedIndices.contains(index)
+                                    isSelected = ctx.isRowSelected(item, index)
                                     theme = ctx.attr.theme
                                     separatorColor = ctx.attr.separatorColor
                                     separatorHeight = ctx.attr.separatorHeight

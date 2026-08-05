@@ -26,6 +26,7 @@ import com.tencent.kuikly.core.reactive.handler.observable
 import com.tencent.kuikly.core.views.List
 import com.tencent.kuikly.core.views.Text
 import com.tencent.kuikly.core.views.View
+import com.tencent.kuikly.table.pipeline.TreeFlattenPipeline
 
 /**
  * 展平后的树节点，包含深度和展开状态信息，供 [TreeTableView] 内部渲染使用。
@@ -199,29 +200,15 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
     /**
      * 递归展平树结构为线性列表。
      *
-     * 仅展开 [expandedIds] 中存在的节点的子树，叶子节点始终包含。
-     * 对于无 ID 节点，使用路径索引方式生成唯一 key（如 "0/1/2"），避免空 ID 碰撞。
+     * 展平算法委托给 [TreeFlattenPipeline]（纯逻辑，可单元测试）。
      *
      * @param nodes 当前层级的树节点列表
      * @param depth 当前深度，根节点层为 0
      * @param parentPath 父节点路径，用于生成无 ID 节点的唯一 key
      * @return 展平后的 [FlatTreeNode] 列表
      */
-    private fun flattenTree(nodes: List<TreeNode<T>>, depth: Int = 0, parentPath: String = ""): List<FlatTreeNode<T>> {
-        val result = mutableListOf<FlatTreeNode<T>>()
-        for ((childIndex, node) in nodes.withIndex()) {
-            val hasChildren = !node.children.isNullOrEmpty()
-            val nodeId = node.id.ifEmpty {
-                attr.nodeKeyExtractor?.invoke(node.data) ?: "$parentPath/$childIndex"
-            }
-            val isExpanded = nodeId in expandedIds
-            result.add(FlatTreeNode(node, depth, hasChildren, isExpanded))
-            if (hasChildren && isExpanded) {
-                result.addAll(flattenTree(node.children!!, depth + 1, nodeId))
-            }
-        }
-        return result
-    }
+    private fun flattenTree(nodes: List<TreeNode<T>>, depth: Int = 0, parentPath: String = ""): List<FlatTreeNode<T>> =
+        TreeFlattenPipeline.flatten(nodes, expandedIds, attr.nodeKeyExtractor, depth, parentPath)
 
     /**
      * 重建展平数据并递增版本号，驱动 UI 刷新。

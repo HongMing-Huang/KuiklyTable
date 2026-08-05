@@ -340,6 +340,7 @@ PaginatedTable<Student> {
 |--------|------|--------|------|
 | `columns` | `List<TableColumn<T>>` | `emptyList()` | 列定义列表 |
 | `data` | `List<T>` | `emptyList()` | 数据列表 |
+| `rowKey` | `((T) -> Any)?` | `null` | 稳定行标识提取器。配置后行选择基于数据项标识，排序/数据变化时选中状态跟随数据项而非位置漂移 |
 | `rowHeight` | `Float` | `48f` | 数据行高度 |
 | `headerHeight` | `Float` | `44f` | 表头高度 |
 | `showHeader` | `Boolean` | `true` | 是否显示表头 |
@@ -922,6 +923,23 @@ DSL 入口：`TableWithEmptyState<T> { attr { ... } }`
 18. **合并表头** — 多行表头分组
 19. **无限滚动** — 滚动自动加载
 20. **空状态** — 空数据占位视图
+
+## 🧪 单元测试
+
+核心算法以纯逻辑管道形式（`pipeline` 包）与 UI 解耦，覆盖 23 项单元测试：
+
+| 测试类 | 覆盖范围 |
+|--------|---------|
+| `TableSortPipelineTest` | 排序：comparator 数值排序 / textExtractor 字符串回退 / 升降序 / 未知列保持原序 |
+| `PaginationPipelineTest` | 分页：总页数、切片、页码 clamp、可见页码（含省略号） |
+| `FilterPipelineTest` | 过滤：空关键词、默认列匹配（大小写不敏感）、自定义匹配器 |
+| `TreeFlattenPipelineTest` | 树展平：展开/折叠、深度、无 ID 节点路径 key |
+
+运行方式：
+
+```bash
+./gradlew :kuikly-table:testDebugUnitTest
+```
 
 ## 🌐 平台支持
 

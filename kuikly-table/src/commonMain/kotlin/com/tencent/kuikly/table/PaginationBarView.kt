@@ -25,7 +25,7 @@ import com.tencent.kuikly.core.directives.vbind
 import com.tencent.kuikly.core.reactive.handler.observable
 import com.tencent.kuikly.core.views.Text
 import com.tencent.kuikly.core.views.View
-import kotlin.math.max
+import com.tencent.kuikly.table.pipeline.PaginationPipeline
 
 /**
  * 分页表格属性配置。
@@ -191,26 +191,16 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
 
     /** 总页数，至少为 1 */
     val totalPages: Int
-        get() {
-            val total = attr.data.size
-            return if (total == 0) 1 else max(1, (total + currentPageSize - 1) / currentPageSize)
-        }
+        get() = PaginationPipeline.totalPages(attr.data.size, currentPageSize)
 
     /**
      * 返回当前页的数据切片。
      *
-     * 根据 [currentPage] 和 [currentPageSize] 对 [PaginatedTableAttr.data] 做 subList。
+     * 分页算法委托给 [PaginationPipeline]（纯逻辑，可单元测试）。
      *
      * @return 当前页数据列表
      */
-    fun getPageData(): List<T> {
-        val data = attr.data
-        if (data.isEmpty()) return emptyList()
-        val start = (currentPage - 1) * currentPageSize
-        if (start >= data.size) return emptyList()
-        val end = minOf(start + currentPageSize, data.size)
-        return data.subList(start, end)
-    }
+    fun getPageData(): List<T> = PaginationPipeline.pageData(attr.data, currentPage, currentPageSize)
 
     /**
      * 跳转到上一页。已到首页时无效。
@@ -238,7 +228,7 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
      * @param page 目标页码，自动 clamp 到合法范围
      */
     fun goToPage(page: Int) {
-        val target = page.coerceIn(1, totalPages)
+        val target = PaginationPipeline.clampPage(page, totalPages)
         if (target != currentPage) {
             currentPage = target
             event.onPageChanged?.invoke(currentPage)
@@ -256,45 +246,8 @@ class PaginatedTableView<T> : ComposeView<PaginatedTableAttr<T>, PaginatedTableE
      *
      * @return 可见页码列表
      */
-    fun getVisiblePages(): List<Int> {
-        val total = totalPages
-        val current = currentPage
-        val maxVisible = attr.maxVisiblePages
-
-        // 总页数小于等于可见数量，全部显示
-        if (total <= maxVisible) {
-            return (1..total).toList()
-        }
-
-        val pages = mutableListOf<Int>()
-        // 始终显示第一页
-        pages.add(1)
-
-        // 计算中间页码范围
-        val halfRange = (maxVisible - 2) / 2  // 去掉首尾页后的半宽
-        val rangeStart = max(2, current - halfRange)
-        val rangeEnd = minOf(total - 1, current + halfRange)
-
-        // 如果范围起点不紧跟第一页，加省略号
-        if (rangeStart > 2) {
-            pages.add(-1)
-        }
-
-        // 添加中间页码
-        for (p in rangeStart..rangeEnd) {
-            pages.add(p)
-        }
-
-        // 如果范围终点不紧跟末页，加省略号
-        if (rangeEnd < total - 1) {
-            pages.add(-1)
-        }
-
-        // 始终显示最后一页
-        pages.add(total)
-
-        return pages
-    }
+    fun getVisiblePages(): List<Int> =
+        PaginationPipeline.visiblePages(currentPage, totalPages, attr.maxVisiblePages)
 
     // endregion
 
