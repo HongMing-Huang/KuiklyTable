@@ -14,7 +14,7 @@
  */
 
 object Version {
-    private const val KUIKLY_VERSION = "2.15.0"
+    private const val KUIKLY_VERSION = "2.23.2"
     private const val KOTLIN_VERSION = "2.1.21"
     private const val AGP_VERSION = "7.4.2"
     private const val KSP_VERSION = "2.1.21-2.0.1"
