@@ -127,97 +127,97 @@ class TableDemoPage : Pager() {
                 // === Section 1: 基础表格 ===
                 page.buildSectionBasic(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 2: 可排序表格 ===
                 page.buildSectionSortable(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 3: 可选择表格 ===
                 page.buildSectionSelectable(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 4: 斑马纹主题 ===
                 page.buildSectionStripe(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 5: 全边框主题 ===
                 page.buildSectionBordered(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 6: 自定义单元格渲染 ===
                 page.buildSectionCustomRenderer(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 7: 横向滚动表格 ===
                 page.buildSectionHorizontalScroll(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 8: 极简主题 ===
                 page.buildSectionMinimal(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 9: 大数据量 ===
                 page.buildSectionLargeData(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 10: 空状态视图 ===
                 page.buildSectionEmptyState(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 11: 分页表格 ===
                 page.buildSectionPagination(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 12: 搜索过滤 ===
                 page.buildSectionSearch(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 13: 批量操作 ===
                 page.buildSectionBatchAction(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 14: 合并表头 ===
                 page.buildSectionMergedHeader(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 15: 滑动操作 ===
                 page.buildSectionSwipeable(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 16: 内联编辑 ===
                 page.buildSectionEditable(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 17: 展开折叠 ===
                 page.buildSectionExpandable(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 18: 无限滚动 ===
                 page.buildSectionInfinite(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 19: 树形表格 ===
                 page.buildSectionTreeTable(this)
 
-                page.buildDivider(this)
+                buildDivider(this)
 
                 // === Section 20: 冻结列 ===
                 page.buildSectionFrozen(this)
@@ -720,7 +720,7 @@ class TableDemoPage : Pager() {
                 attr { height(300f); marginTop(8f) }
                 TableWithEmptyState<Student> {
                     attr {
-                        isEmpty = true
+                        emptyState = true
                         emptyText = "暂无学生数据"
                         emptyIcon = "📋"
                         containerHeight = 300f
@@ -1145,67 +1145,67 @@ class TableDemoPage : Pager() {
     }
 
     // endregion
+}
 
-    // region 辅助方法
+// region 辅助方法（包级顶层函数，避免在嵌套 DSL lambda 中隐式 receiver 冲突）
 
-    /**
-     * 构建 Section 标题。
-     */
-    private fun buildSectionTitle(container: ViewContainer<*, *>, title: String) {
-        container.Text {
-            attr {
-                text(title)
-                fontSize(14f)
-                fontWeightBold()
-                color(Color(0xFF333333))
-                marginBottom(4f)
-            }
+/**
+ * 构建 Section 标题。
+ */
+private fun buildSectionTitle(container: ViewContainer<*, *>, title: String) {
+    container.Text {
+        attr {
+            text(title)
+            fontSize(14f)
+            fontWeightBold()
+            color(Color(0xFF333333))
+            marginBottom(4f)
         }
     }
+}
 
-    /**
-     * 构建描述文本。
-     */
-    private fun buildDescription(container: ViewContainer<*, *>, text: String) {
-        container.Text {
+/**
+ * 构建描述文本。
+ */
+private fun buildDescription(container: ViewContainer<*, *>, text: String) {
+    container.Text {
+        attr {
+            text(text)
+            fontSize(12f)
+            color(Color(0xFF999999))
+            marginBottom(4f)
+        }
+    }
+}
+
+/**
+ * 构建灰色分隔线。
+ */
+private fun buildDivider(container: ViewContainer<*, *>) {
+    container.View {
+        attr { height(8f); backgroundColor(Color(0xFFF5F5F5)) }
+    }
+}
+
+/**
+ * 构建信息展示框（浅灰背景圆角框）。
+ */
+private fun buildInfoBox(container: ViewContainer<*, *>, text: String) {
+    container.View {
+        attr {
+            marginTop(8f)
+            padding(12f)
+            backgroundColor(Color(0xFFF5F5F5))
+            borderRadius(8f)
+        }
+        Text {
             attr {
                 text(text)
-                fontSize(12f)
-                color(Color(0xFF999999))
-                marginBottom(4f)
+                fontSize(13f)
+                color(Color(0xFF666666))
             }
         }
     }
-
-    /**
-     * 构建灰色分隔线。
-     */
-    private fun buildDivider(container: ViewContainer<*, *>) {
-        container.View {
-            attr { height(8f); backgroundColor(Color(0xFFF5F5F5)) }
-        }
-    }
-
-    /**
-     * 构建信息展示框（浅灰背景圆角框）。
-     */
-    private fun buildInfoBox(container: ViewContainer<*, *>, text: String) {
-        container.View {
-            attr {
-                marginTop(8f)
-                padding(12f)
-                backgroundColor(Color(0xFFF5F5F5))
-                borderRadius(8f)
-            }
-            Text {
-                attr {
-                    text(text)
-                    fontSize(13f)
-                    color(Color(0xFF666666))
-                }
-            }
-        }
-    }
-
-    // endregion
 }
+
+// endregion

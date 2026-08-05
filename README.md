@@ -771,7 +771,7 @@ DSL 入口：`InfiniteTable<T> { attr { ... } event { ... } }`
 | `checkAndLoadMore(visibleIndex: Int, totalItems: Int)` | 可见索引和总数 | 基于可见索引检测是否应触发加载 |
 | `checkAndLoadMore()` | 无 | 无参版本，基于内部数据量自动判断 |
 | `triggerLoadMore()` | 无 | 手动触发加载更多 |
-| `setLoading(isLoading: Boolean)` | `isLoading` | 手动设置加载状态 |
+| `loading`（属性） | `Boolean` | 手动设置加载状态：`view.loading = true/false` |
 
 #### 7. EditableTable — 内联编辑
 
@@ -887,14 +887,14 @@ DSL 入口：`TableWithEmptyState<T> { attr { ... } }`
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `tableInit` | `(TableView<T>.() -> Unit)?` | `null` | 传递给内部 TableView 的初始化回调 |
-| `isEmpty` | `Boolean` | `false` | 是否为空状态，由外部根据数据判断设置 |
+| `emptyState` | `Boolean` | `false` | 是否为空状态，由外部根据数据判断设置 |
 | `emptyText` | `String` | `"暂无数据"` | 空状态提示文案 |
 | `emptyTextColor` | `Color` | `Color(0xFF999999)` | 空状态文案颜色 |
 | `emptyTextSize` | `Float` | `14f` | 空状态文案字号 |
 | `emptyIcon` | `String?` | `null` | 空状态图标文本（可选），显示在文案上方 |
 | `containerHeight` | `Float` | `400f` | 容器高度 |
 
-> 无自定义事件。当 `isEmpty = true` 时显示空状态占位视图，否则显示内部表格。
+> 无自定义事件。当 `emptyState = true` 时显示空状态占位视图，否则显示内部表格。
 
 ## 📱 示例
 

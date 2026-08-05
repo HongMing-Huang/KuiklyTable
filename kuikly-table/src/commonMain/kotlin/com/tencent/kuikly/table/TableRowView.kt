@@ -74,6 +74,7 @@ class TableRowView<T> : ComposeView<TableRowAttr<T>, TableRowEvent<T>>() {
             }
 
             for (col in ctx.attr.columns) {
+                val rowItem = ctx.attr.item
                 View {
                     attr {
                         flex(col.flex)
@@ -96,14 +97,14 @@ class TableRowView<T> : ComposeView<TableRowAttr<T>, TableRowEvent<T>>() {
                     }
 
                     // 自定义渲染
-                    if (col.cellRenderer != null) {
-                        col.cellRenderer.invoke(this, ctx.attr.item)
+                    if (col.cellRenderer != null && rowItem != null) {
+                        col.cellRenderer.invoke(this, rowItem)
                     }
                     // 文本渲染
-                    else if (col.textExtractor != null) {
+                    else if (col.textExtractor != null && rowItem != null) {
                         Text {
                             attr {
-                                text(col.textExtractor.invoke(ctx.attr.item))
+                                text(col.textExtractor.invoke(rowItem))
                                 fontSize(ctx.attr.cellFontSize)
                                 color(ctx.attr.cellTextColor)
 
@@ -164,7 +165,7 @@ class TableRowView<T> : ComposeView<TableRowAttr<T>, TableRowEvent<T>>() {
  */
 class TableRowAttr<T> : ComposeAttr() {
     /** 当前行数据（必须在使用前赋值）*/
-    lateinit var item: T
+    var item: T? = null
 
     /** 行索引 */
     var index: Int = 0

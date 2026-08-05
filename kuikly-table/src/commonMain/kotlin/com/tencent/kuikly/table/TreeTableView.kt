@@ -244,6 +244,7 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
      * @return 树形列定义列表
      */
     private fun buildTreeColumns(): List<TableColumn<FlatTreeNode<T>>> {
+        val self = this
         val firstOriginalCol = attr.columns.firstOrNull()
 
         // 第一列：缩进 + 展开/折叠图标 + 原始第一列内容
@@ -262,7 +263,7 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
                 if (flatNode.depth > 0) {
                     View {
                         attr {
-                            width(attr.indentWidth * flatNode.depth)
+                            width(self.attr.indentWidth * flatNode.depth)
                         }
                     }
                 }
@@ -271,12 +272,12 @@ class TreeTableView<T> : ComposeView<TreeTableAttr<T>, TreeTableEvent<T>>() {
                 Text {
                     attr {
                         val iconText = when {
-                            !flatNode.hasChildren -> attr.leafIcon
-                            flatNode.isExpanded -> attr.collapseIcon
-                            else -> attr.expandIcon
+                            !flatNode.hasChildren -> self.attr.leafIcon
+                            flatNode.isExpanded -> self.attr.collapseIcon
+                            else -> self.attr.expandIcon
                         }
                         text(iconText)
-                        width(attr.indentWidth)
+                        width(self.attr.indentWidth)
                         fontSize(12f)
                         color(Color(0xFF666666))
                         textAlignCenter()

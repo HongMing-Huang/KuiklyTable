@@ -28,12 +28,12 @@
 
   <h1>空状态</h1>
   <p>
-    <code>TableWithEmptyState</code> 包装了 <code>TableView</code>，根据 <code>isEmpty</code> 属性条件渲染：
+    <code>TableWithEmptyState</code> 包装了 <code>TableView</code>，根据 <code>emptyState</code> 属性条件渲染：
     有数据时显示表格，无数据时显示友好的空状态占位视图（可选图标 + 提示文案）。
   </p>
 
   <h2>基础用法</h2>
-  <p>传入 <code>isEmpty</code> 判断条件，设置空状态提示文案：</p>
+  <p>传入 <code>emptyState</code> 判断条件，设置空状态提示文案：</p>
   <div class="code-block-wrapper">
     <pre><code class="language-kotlin">data class Student(val name: String, val score: Int)
 
@@ -41,7 +41,7 @@ val students: List&lt;Student&gt; = emptyList()  // 当前无数据
 
 TableWithEmptyState&lt;Student&gt; {
     attr {
-        isEmpty = students.isEmpty()
+        emptyState = students.isEmpty()
         emptyText = "暂无学生数据"
         emptyIcon = "📋"
         tableInit = {
@@ -63,7 +63,7 @@ TableWithEmptyState&lt;Student&gt; {
   <div class="code-block-wrapper">
     <pre><code class="language-kotlin">TableWithEmptyState&lt;Student&gt; {
     attr {
-        isEmpty = students.isEmpty()
+        emptyState = students.isEmpty()
         emptyText = "还没有数据，快去添加吧！"
         emptyTextColor = Color(0xFFAAAAAA)
         emptyTextSize = 16f
@@ -88,7 +88,7 @@ var students: List&lt;Student&gt; by observable(emptyList())
 // 视图中
 TableWithEmptyState&lt;Student&gt; {
     attr {
-        isEmpty = students.isEmpty()
+        emptyState = students.isEmpty()
         emptyText = if (isLoading) "加载中..." else "暂无数据"
         emptyIcon = if (isLoading) "⏳" else "📭"
         tableInit = {
@@ -105,7 +105,7 @@ TableWithEmptyState&lt;Student&gt; {
   <h2>API 参考</h2>
   <table>
     <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-    <tr><td>isEmpty</td><td>Boolean</td><td>false</td><td>是否为空状态，由外部根据数据判断</td></tr>
+    <tr><td>emptyState</td><td>Boolean</td><td>false</td><td>是否为空状态，由外部根据数据判断</td></tr>
     <tr><td>emptyText</td><td>String</td><td>"暂无数据"</td><td>空状态提示文案</td></tr>
     <tr><td>emptyTextColor</td><td>Color</td><td>#999999</td><td>空状态文案颜色</td></tr>
     <tr><td>emptyTextSize</td><td>Float</td><td>14f</td><td>空状态文案字号</td></tr>

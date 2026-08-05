@@ -173,15 +173,6 @@ class InfiniteTableView<T> : ComposeView<InfiniteTableAttr<T>, InfiniteTableEven
         }
     }
 
-    /**
-     * 手动设置加载状态。
-     *
-     * @param isLoading 是否正在加载
-     */
-    fun setLoading(isLoading: Boolean) {
-        loading = isLoading
-    }
-
     // endregion
 
     // region body 布局

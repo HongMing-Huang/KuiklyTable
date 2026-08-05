@@ -225,7 +225,7 @@ class EditableTableView<T> : ComposeView<EditableTableAttr<T>, EditableTableEven
                                     }
                                 }
                             }
-                            })
+                            )
                         } else {
                             col
                         }

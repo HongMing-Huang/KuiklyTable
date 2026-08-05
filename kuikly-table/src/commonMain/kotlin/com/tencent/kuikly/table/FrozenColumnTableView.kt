@@ -347,9 +347,9 @@ class FrozenColumnTableView<T> : ComposeView<FrozenColumnTableAttr<T>, FrozenCol
             }
 
             // 计算冻结列和主列
-            val frozenColumns = attr.columns.filter { it.key in attr.frozenColumnKeys }
-            val scrollColumns = attr.columns.filter { it.key !in attr.frozenColumnKeys }
-            val frozenWidth = calcFrozenWidth(frozenColumns)
+            val frozenColumns = ctx.attr.columns.filter { it.key in ctx.attr.frozenColumnKeys }
+            val scrollColumns = ctx.attr.columns.filter { it.key !in ctx.attr.frozenColumnKeys }
+            val frozenWidth = ctx.calcFrozenWidth(frozenColumns)
 
             // ===== 吸顶表头区域 =====
             vif({ ctx.attr.showHeader && ctx.attr.stickyHeader }) {

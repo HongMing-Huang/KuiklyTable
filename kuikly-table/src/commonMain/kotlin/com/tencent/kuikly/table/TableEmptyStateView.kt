@@ -32,7 +32,7 @@ import com.tencent.kuikly.core.views.View
  * ```kotlin
  * TableWithEmptyState<Student> {
  *     attr {
- *         isEmpty = students.isEmpty()
+ *         emptyState = students.isEmpty()
  *         emptyText = "暂无学生数据"
  *         emptyTextColor = Color(0xFF999999)
  *         emptyTextSize = 16f
@@ -56,7 +56,7 @@ class TableEmptyStateAttr<T> : ComposeAttr() {
     var tableInit: (TableView<T>.() -> Unit)? = null
 
     /** 是否为空状态，由外部根据数据判断设置 */
-    var isEmpty: Boolean = false
+    var emptyState: Boolean = false
 
     /** 空状态提示文案，默认 "暂无数据" */
     var emptyText: String = "暂无数据"
@@ -86,7 +86,7 @@ class TableEmptyStateEvent<T> : ComposeEvent()
 /**
  * 带空状态视图的表格包装组件。
  *
- * 通过 [ComposeView] 三件套封装，内部根据 [TableEmptyStateAttr.isEmpty] 条件渲染：
+ * 通过 [ComposeView] 三件套封装，内部根据 [TableEmptyStateAttr.emptyState] 条件渲染：
  * - 有数据时显示内部 [TableView]
  * - 无数据时显示空状态占位视图（可选图标 + 文案）
  *
@@ -94,7 +94,7 @@ class TableEmptyStateEvent<T> : ComposeEvent()
  * ```kotlin
  * TableWithEmptyState<Student> {
  *     attr {
- *         isEmpty = students.isEmpty()
+ *         emptyState = students.isEmpty()
  *         emptyText = "暂无学生数据"
  *         tableInit = {
  *             attr {
@@ -136,14 +136,14 @@ class TableEmptyStateView<T> : ComposeView<TableEmptyStateAttr<T>, TableEmptySta
             }
 
             // 有数据时显示表格
-            vif({ !ctx.attr.isEmpty && ctx.attr.tableInit != null }) {
+            vif({ !ctx.attr.emptyState && ctx.attr.tableInit != null }) {
                 Table<T> {
                     ctx.attr.tableInit?.invoke(this)
                 }
             }
 
             // 无数据时显示空状态
-            vif({ ctx.attr.isEmpty }) {
+            vif({ ctx.attr.emptyState }) {
                 View {
                     attr {
                         flex(1f)
